@@ -2,7 +2,8 @@
 
 A Django web application for tracking running workouts with science-based training load analytics.
 
-<img width="1724" height="934" alt="image" src="https://github.com/user-attachments/assets/919be843-4533-41a4-aaed-4b404dcbf736" />
+<img width="1727" height="935" alt="image" src="https://github.com/user-attachments/assets/ca67e304-ce35-4f6c-88f2-a9da16d62f19" />
+
 
 
 ## What it does
