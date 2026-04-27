@@ -4,6 +4,7 @@
 ## Bug 2 - RPE not updating upon slider input
 ## Bug 3 - Training status is 'Overreaching' when the user has few workout entries
 ## Bug 4 - Workout form inputs are not aligned
+## Bug 5 - Seconds are not stored when entering a run
 
 
 # Features

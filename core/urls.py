@@ -23,6 +23,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.dashboard, name='dashboard'),
     path('delete/<int:pk>/', views.delete_run, name='delete_run'),
+    path('export/csv/', views.export_csv, name='export_csv'),
+    path('import/csv/', views.import_csv, name='import_csv'),
     path('register/', views.register, name='register'),
 
     # Built-in Auth views

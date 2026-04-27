@@ -6,11 +6,16 @@ def calculate_training_metrics_for_date(user, target_date):
     def get_load_for_period(days):
         start_date = target_date - timedelta(days=days)
         # We calculate: duration * rpe for every run in this window
+        total_minutes = (
+            F('duration_hours') * 60
+            + F('duration_minutes')
+            + F('duration_seconds') / 60.0
+        )
         result = user.workouts.filter(
-            date__gt=start_date, 
+            date__gt=start_date,
             date__lte=target_date
         ).aggregate(
-            total=Sum(F('duration_minutes') * F('rpe'))
+            total=Sum(total_minutes * F('rpe'))
         )['total'] or 0
         return result / days
 

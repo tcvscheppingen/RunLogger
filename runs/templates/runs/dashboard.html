@@ -3,6 +3,18 @@
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+{% if messages %}
+<div class="mb-6 space-y-2">
+    {% for message in messages %}
+    <div class="px-4 py-3 rounded-lg text-sm font-medium border
+        {% if message.tags == 'success' %}bg-green-50 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700
+        {% else %}bg-yellow-50 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
     <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
         <p class="text-xs font-bold text-slate-400 uppercase">Monthly Distance</p>
@@ -38,23 +50,44 @@
     </div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-    {% include 'runs/components/workout_form.html' %}
-
-    <div class="lg:col-span-2">
-        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm h-full">
-            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">Fitness vs. Fatigue</h3>
-            <div class="relative h-[300px] w-full">
-                <canvas id="loadChart"></canvas>
-            </div>
+<div class="mb-8">
+    <div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">Fitness vs. Fatigue</h3>
+        <div class="relative h-[300px] w-full">
+            <canvas id="loadChart"></canvas>
         </div>
     </div>
 </div>
 
 <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
     <div class="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
-        <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Recent Runs</h2>
-        <span class="text-xs text-slate-400 font-medium">{{ workouts|length }} Total Sessions</span>
+        <div class="flex items-center gap-3">
+            <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Recent Runs</h2>
+            <span class="text-xs text-slate-400 font-medium">{{ workouts|length }} Total Sessions</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'export_csv' %}"
+                class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 text-xs font-bold px-3 py-2 rounded-lg transition">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Export
+            </a>
+            <button id="openImportModal"
+                class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 text-xs font-bold px-3 py-2 rounded-lg transition">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l4-4m0 0l4 4m-4-4v12" />
+                </svg>
+                Import
+            </button>
+            <button id="openLogModal"
+                class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shadow-sm shadow-blue-100 dark:shadow-none">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                Log a Run
+            </button>
+        </div>
     </div>
 
     <div class="overflow-y-auto" style="max-height: 300px;">
@@ -100,11 +133,101 @@
     </div>
 </div>
 
+<!-- Log a Run modal -->
+<div id="logRunModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md relative">
+        <button id="closeLogModal"
+            class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        {% include 'runs/components/workout_form.html' %}
+    </div>
+</div>
+
+<!-- Import CSV modal -->
+<div id="importModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md relative">
+        <button id="closeImportModal"
+            class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        <div class="p-6">
+            <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100 mb-1">Import Runs</h2>
+            <p class="text-xs text-slate-400 mb-5">Upload a CSV file to bulk-import your runs. Each row must have the columns below.</p>
+            <div class="mb-5 bg-slate-50 dark:bg-slate-900 rounded-lg px-4 py-3 text-xs font-mono text-slate-500 dark:text-slate-400 overflow-x-auto whitespace-nowrap">
+                date, distance_km, duration_hours, duration_minutes, duration_seconds, notes, rpe
+            </div>
+            <form action="{% url 'import_csv' %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2" for="csv_file">CSV File</label>
+                <input id="csv_file" name="csv_file" type="file" accept=".csv"
+                    class="block w-full text-sm text-slate-500 dark:text-slate-400
+                        file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
+                        file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700
+                        dark:file:bg-slate-700 dark:file:text-slate-300
+                        hover:file:bg-blue-100 dark:hover:file:bg-slate-600
+                        cursor-pointer mb-6" />
+                <button type="submit"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2.5 rounded-lg transition">
+                    Import
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
 {{ chart_dates|json_script:"chart-dates" }}
 {{ chart_ctl|json_script:"chart-ctl" }}
 {{ chart_atl|json_script:"chart-atl" }}
 
 <script>
+    // Modal open/close
+    const modal = document.getElementById('logRunModal');
+
+    function openModal() {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeModal() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    document.getElementById('openLogModal').addEventListener('click', openModal);
+    document.getElementById('closeLogModal').addEventListener('click', closeModal);
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+    });
+
+    // Import modal
+    const importModal = document.getElementById('importModal');
+
+    function openImportModal() {
+        importModal.classList.remove('hidden');
+        importModal.classList.add('flex');
+    }
+
+    function closeImportModal() {
+        importModal.classList.add('hidden');
+        importModal.classList.remove('flex');
+    }
+
+    document.getElementById('openImportModal').addEventListener('click', openImportModal);
+    document.getElementById('closeImportModal').addEventListener('click', closeImportModal);
+    importModal.addEventListener('click', function (e) {
+        if (e.target === importModal) closeImportModal();
+    });
+
+    {% if form.errors %}
+    openModal();
+    {% endif %}
+
+    // Fitness chart
     document.addEventListener('DOMContentLoaded', function () {
 
         const chartDates = JSON.parse(document.getElementById('chart-dates').textContent);

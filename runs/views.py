@@ -1,16 +1,19 @@
+import csv
+import io
 import json
 import logging
-from datetime import timedelta
+from datetime import timedelta, date as date_type
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Sum, F
 from django.utils import timezone
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from .models import Workout
 from .forms import WorkoutForm
 from runs.utils import calculate_training_metrics_for_date
-from django.http import HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +43,9 @@ def dashboard(request):
             m = form.cleaned_data.get('minutes') or 0
             s = form.cleaned_data.get('seconds') or 0
 
-            workout.duration_minutes = float(
-                h * 60) + float(m) + (float(s) / 60.0)
+            workout.duration_hours = h
+            workout.duration_minutes = m
+            workout.duration_seconds = s
             workout.user = request.user
             workout.save()
             return redirect('dashboard')
@@ -97,6 +101,96 @@ def dashboard(request):
     }
 
     return render(request, 'runs/dashboard.html', context)
+
+
+@login_required
+def export_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="runs_export.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['date', 'distance_km', 'duration_hours', 'duration_minutes', 'duration_seconds', 'notes', 'rpe'])
+
+    for workout in Workout.objects.filter(user=request.user).order_by('-date'):
+        writer.writerow([
+            workout.date,
+            workout.distance,
+            workout.duration_hours or 0,
+            workout.duration_minutes or 0,
+            workout.duration_seconds or 0,
+            workout.notes or '',
+            workout.rpe,
+        ])
+
+    return response
+
+
+@login_required
+def import_csv(request):
+    if request.method != 'POST':
+        return redirect('dashboard')
+
+    csv_file = request.FILES.get('csv_file')
+    if not csv_file:
+        messages.warning(request, 'No file was uploaded.')
+        return redirect('dashboard')
+
+    try:
+        text = csv_file.read().decode('utf-8')
+    except UnicodeDecodeError:
+        messages.warning(request, 'Could not read the file — make sure it is a UTF-8 encoded CSV.')
+        return redirect('dashboard')
+
+    reader = csv.DictReader(io.StringIO(text))
+    imported = 0
+    skipped = 0
+    to_create = []
+
+    for row in reader:
+        try:
+            row_date = date_type.fromisoformat(row['date'].strip())
+
+            distance = float(row['distance_km'])
+            if distance < 0.01:
+                raise ValueError
+
+            hours = int(row.get('duration_hours') or 0)
+            minutes = int(row.get('duration_minutes') or 0)
+            seconds = int(row.get('duration_seconds') or 0)
+            if hours < 0 or minutes < 0 or seconds < 0:
+                raise ValueError
+
+            rpe = int(row['rpe'])
+            if not (1 <= rpe <= 10):
+                raise ValueError
+
+            notes = row.get('notes', '') or ''
+
+            to_create.append(Workout(
+                user=request.user,
+                date=row_date,
+                distance=distance,
+                duration_hours=hours,
+                duration_minutes=minutes,
+                duration_seconds=seconds,
+                notes=notes,
+                rpe=rpe,
+            ))
+            imported += 1
+        except (KeyError, ValueError, AttributeError):
+            skipped += 1
+
+    if to_create:
+        Workout.objects.bulk_create(to_create)
+
+    msg = f'Imported {imported} run{"s" if imported != 1 else ""}.'
+    if skipped:
+        msg += f' {skipped} row{"s" if skipped != 1 else ""} skipped due to invalid data.'
+        messages.warning(request, msg)
+    else:
+        messages.success(request, msg)
+
+    return redirect('dashboard')
 
 
 @login_required
