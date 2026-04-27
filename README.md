@@ -2,6 +2,9 @@
 
 A Django web application for tracking running workouts with science-based training load analytics.
 
+<img width="1724" height="934" alt="image" src="https://github.com/user-attachments/assets/919be843-4533-41a4-aaed-4b404dcbf736" />
+
+
 ## What it does
 
 RunLogger helps runners monitor their training progress by combining a simple workout log with established athletic training principles. Each run you log is used to calculate your **Fitness (CTL)** and **Fatigue (ATL)** levels, giving you a data-driven view of whether your training is productive, building toward overreaching, or in recovery.
