@@ -1,7 +1,9 @@
+import io
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from .models import Workout
 from .forms import WorkoutForm
 from .utils import calculate_training_metrics_for_date
@@ -13,7 +15,7 @@ from datetime import date, timedelta
 # ---------------------------------------------------------------------------
 
 def make_workout(user, **kwargs):
-    defaults = dict(distance=10.0, duration_minutes=60, rpe=5)
+    defaults = dict(distance=10.0, duration_hours=0, duration_minutes=60, duration_seconds=0, rpe=5)
     defaults.update(kwargs)
     return Workout.objects.create(user=user, **defaults)
 
@@ -52,42 +54,36 @@ class WorkoutModelTests(TestCase):
         workout = make_workout(self.user, duration_minutes=45)
         self.assertEqual(workout.duration_display, '45m 0s')
 
+    def _workout(self, **kwargs):
+        defaults = dict(distance=5.0, duration_hours=0, duration_minutes=30, duration_seconds=0, rpe=5)
+        defaults.update(kwargs)
+        return Workout(user=self.user, **defaults)
+
     def test_distance_validator_rejects_zero(self):
-        workout = Workout(user=self.user, distance=0.0, duration_minutes=30, rpe=5)
         with self.assertRaises(ValidationError):
-            workout.full_clean()
+            self._workout(distance=0.0).full_clean()
 
     def test_distance_validator_rejects_negative(self):
-        workout = Workout(user=self.user, distance=-5.0, duration_minutes=30, rpe=5)
         with self.assertRaises(ValidationError):
-            workout.full_clean()
+            self._workout(distance=-5.0).full_clean()
 
     def test_distance_validator_accepts_positive(self):
-        workout = Workout(user=self.user, distance=0.5, duration_minutes=30, rpe=5)
         try:
-            workout.full_clean()
+            self._workout(distance=0.5).full_clean()
         except ValidationError as e:
             self.fail(f"Unexpected ValidationError for valid distance: {e}")
 
-    def test_duration_validator_rejects_zero(self):
-        workout = Workout(user=self.user, distance=5.0, duration_minutes=0, rpe=5)
-        with self.assertRaises(ValidationError):
-            workout.full_clean()
-
     def test_duration_validator_rejects_negative(self):
-        workout = Workout(user=self.user, distance=5.0, duration_minutes=-10, rpe=5)
         with self.assertRaises(ValidationError):
-            workout.full_clean()
+            self._workout(duration_minutes=-10).full_clean()
 
     def test_rpe_validator_rejects_above_max(self):
-        workout = Workout(user=self.user, distance=5.0, duration_minutes=30, rpe=11)
         with self.assertRaises(ValidationError):
-            workout.full_clean()
+            self._workout(rpe=11).full_clean()
 
     def test_rpe_validator_rejects_below_min(self):
-        workout = Workout(user=self.user, distance=5.0, duration_minutes=30, rpe=0)
         with self.assertRaises(ValidationError):
-            workout.full_clean()
+            self._workout(rpe=0).full_clean()
 
 
 # ---------------------------------------------------------------------------
@@ -204,11 +200,13 @@ class DashboardViewTests(TestCase):
         response = self._post_run()
         self.assertRedirects(response, reverse('dashboard'))
 
-    def test_hh_mm_ss_conversion_to_decimal_minutes(self):
-        # 1h 30m 0s = exactly 90 minutes (whole number avoids IntegerField truncation)
+    def test_hh_mm_ss_stored_as_separate_components(self):
         self._post_run(distance='10', hours='1', minutes='30', seconds='0')
         run = Workout.objects.get(user=self.user)
-        self.assertAlmostEqual(float(run.duration_minutes), 90.0, places=1)
+        self.assertEqual(run.duration_hours, 1)
+        self.assertEqual(run.duration_minutes, 30)
+        self.assertEqual(run.duration_seconds, 0)
+        self.assertEqual(run.duration_display, '1h 30m 0s')
 
     def test_invalid_rpe_not_saved_to_db(self):
         self._post_run(rpe='11')
@@ -356,3 +354,178 @@ class TrainingMetricsTests(TestCase):
 
         self.assertAlmostEqual(two_runs['atl'], one_run['atl'], places=1)
         self.assertAlmostEqual(two_runs['ctl'], one_run['ctl'], places=1)
+
+
+# ---------------------------------------------------------------------------
+# Export tests
+# ---------------------------------------------------------------------------
+
+def make_csv(rows, header='date,distance_km,duration_hours,duration_minutes,duration_seconds,notes,rpe'):
+    lines = [header] + [','.join(str(v) for v in row) for row in rows]
+    return SimpleUploadedFile('runs.csv', '\n'.join(lines).encode('utf-8'), content_type='text/csv')
+
+
+class ExportCSVTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='runner', password='testpass123')
+        self.client.login(username='runner', password='testpass123')
+
+    def test_export_requires_login(self):
+        self.client.logout()
+        response = self.client.get(reverse('export_csv'))
+        self.assertRedirects(response, f"{reverse('login')}?next={reverse('export_csv')}")
+
+    def test_export_returns_csv_content_type(self):
+        response = self.client.get(reverse('export_csv'))
+        self.assertEqual(response['Content-Type'], 'text/csv')
+
+    def test_export_has_correct_header_row(self):
+        response = self.client.get(reverse('export_csv'))
+        first_line = response.content.decode('utf-8').splitlines()[0]
+        self.assertEqual(first_line, 'date,distance_km,duration_hours,duration_minutes,duration_seconds,notes,rpe')
+
+    def test_export_contains_workout_data(self):
+        make_workout(self.user, distance=8.5, duration_hours=0, duration_minutes=40, duration_seconds=0, rpe=6)
+        response = self.client.get(reverse('export_csv'))
+        content = response.content.decode('utf-8')
+        self.assertIn('8.5', content)
+        self.assertIn('40', content)
+        self.assertIn('6', content)
+
+    def test_export_preserves_date(self):
+        run = make_workout(self.user, distance=5.0, duration_minutes=25, rpe=5)
+        Workout.objects.filter(pk=run.pk).update(date=date(2024, 3, 15))
+        response = self.client.get(reverse('export_csv'))
+        self.assertIn('2024-03-15', response.content.decode('utf-8'))
+
+    def test_export_only_includes_own_workouts(self):
+        other = User.objects.create_user(username='stranger', password='testpass123')
+        make_workout(self.user, distance=5.0, duration_minutes=25, rpe=5)
+        make_workout(other, distance=99.0, duration_minutes=25, rpe=5)
+        response = self.client.get(reverse('export_csv'))
+        content = response.content.decode('utf-8')
+        data_rows = [l for l in content.splitlines() if l and not l.startswith('date')]
+        self.assertEqual(len(data_rows), 1)
+        self.assertNotIn('99.0', content)
+
+    def test_export_empty_produces_only_header(self):
+        response = self.client.get(reverse('export_csv'))
+        lines = [l for l in response.content.decode('utf-8').splitlines() if l]
+        self.assertEqual(len(lines), 1)
+
+
+# ---------------------------------------------------------------------------
+# Import tests
+# ---------------------------------------------------------------------------
+
+class ImportCSVTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='runner', password='testpass123')
+        self.client.login(username='runner', password='testpass123')
+
+    def _post_csv(self, csv_file):
+        return self.client.post(reverse('import_csv'), {'csv_file': csv_file})
+
+    def test_import_requires_login(self):
+        self.client.logout()
+        csv_file = make_csv([['2024-01-01', 10.0, 0, 60, 0, '', 5]])
+        response = self.client.post(reverse('import_csv'), {'csv_file': csv_file})
+        self.assertRedirects(response, f"{reverse('login')}?next={reverse('import_csv')}")
+
+    def test_import_get_redirects_to_dashboard(self):
+        response = self.client.get(reverse('import_csv'))
+        self.assertRedirects(response, reverse('dashboard'))
+
+    def test_import_creates_workouts(self):
+        csv_file = make_csv([
+            ['2024-01-10', 10.0, 0, 60, 0, '', 5],
+            ['2024-01-11', 5.0, 0, 30, 0, 'easy run', 3],
+        ])
+        self._post_csv(csv_file)
+        self.assertEqual(Workout.objects.filter(user=self.user).count(), 2)
+
+    def test_import_preserves_date_from_csv(self):
+        csv_file = make_csv([['2023-06-15', 10.0, 0, 60, 0, '', 5]])
+        self._post_csv(csv_file)
+        run = Workout.objects.get(user=self.user)
+        self.assertEqual(run.date, date(2023, 6, 15))
+
+    def test_import_assigns_workouts_to_current_user(self):
+        csv_file = make_csv([['2024-01-01', 10.0, 0, 60, 0, '', 5]])
+        self._post_csv(csv_file)
+        run = Workout.objects.get(user=self.user)
+        self.assertEqual(run.user, self.user)
+
+    def test_import_sets_all_fields_correctly(self):
+        csv_file = make_csv([['2024-02-20', 12.5, 1, 15, 30, 'long run', 7]])
+        self._post_csv(csv_file)
+        run = Workout.objects.get(user=self.user)
+        self.assertAlmostEqual(run.distance, 12.5)
+        self.assertEqual(run.duration_hours, 1)
+        self.assertEqual(run.duration_minutes, 15)
+        self.assertEqual(run.duration_seconds, 30)
+        self.assertEqual(run.notes, 'long run')
+        self.assertEqual(run.rpe, 7)
+
+    def test_import_shows_success_message(self):
+        csv_file = make_csv([['2024-01-01', 10.0, 0, 60, 0, '', 5]])
+        response = self._post_csv(csv_file)
+        messages = [str(m) for m in response.wsgi_request._messages]
+        self.assertTrue(any('Imported 1 run' in m for m in messages))
+
+    def test_import_skips_invalid_rows_and_reports_count(self):
+        csv_file = make_csv([
+            ['2024-01-01', 10.0, 0, 60, 0, '', 5],   # valid
+            ['not-a-date', 10.0, 0, 60, 0, '', 5],   # invalid date
+            ['2024-01-03', -1.0, 0, 60, 0, '', 5],   # invalid distance
+        ])
+        self._post_csv(csv_file)
+        self.assertEqual(Workout.objects.filter(user=self.user).count(), 1)
+
+    def test_import_skips_rpe_out_of_range(self):
+        csv_file = make_csv([
+            ['2024-01-01', 10.0, 0, 60, 0, '', 11],  # rpe too high
+            ['2024-01-02', 10.0, 0, 60, 0, '', 0],   # rpe too low
+        ])
+        self._post_csv(csv_file)
+        self.assertEqual(Workout.objects.filter(user=self.user).count(), 0)
+
+    def test_import_skips_distance_below_minimum(self):
+        csv_file = make_csv([['2024-01-01', 0.001, 0, 60, 0, '', 5]])
+        self._post_csv(csv_file)
+        self.assertEqual(Workout.objects.filter(user=self.user).count(), 0)
+
+    def test_import_shows_warning_when_rows_skipped(self):
+        csv_file = make_csv([
+            ['2024-01-01', 10.0, 0, 60, 0, '', 5],
+            ['bad-row', 'x', 0, 0, 0, '', 5],
+        ])
+        response = self._post_csv(csv_file)
+        msgs = [str(m) for m in response.wsgi_request._messages]
+        self.assertTrue(any('skipped' in m for m in msgs))
+
+    def test_import_no_file_shows_warning(self):
+        response = self.client.post(reverse('import_csv'), {})
+        msgs = [str(m) for m in response.wsgi_request._messages]
+        self.assertTrue(any(m for m in msgs))
+        self.assertEqual(Workout.objects.filter(user=self.user).count(), 0)
+
+    def test_import_invalid_utf8_shows_warning(self):
+        bad_file = SimpleUploadedFile('runs.csv', b'\xff\xfe bad bytes', content_type='text/csv')
+        response = self._post_csv(bad_file)
+        msgs = [str(m) for m in response.wsgi_request._messages]
+        self.assertTrue(any(m for m in msgs))
+        self.assertEqual(Workout.objects.filter(user=self.user).count(), 0)
+
+    def test_import_redirects_to_dashboard_on_success(self):
+        csv_file = make_csv([['2024-01-01', 10.0, 0, 60, 0, '', 5]])
+        response = self._post_csv(csv_file)
+        self.assertRedirects(response, reverse('dashboard'))
+
+    def test_import_does_not_create_workouts_for_other_users(self):
+        other = User.objects.create_user(username='stranger', password='testpass123')
+        csv_file = make_csv([['2024-01-01', 10.0, 0, 60, 0, '', 5]])
+        self._post_csv(csv_file)
+        self.assertEqual(Workout.objects.filter(user=other).count(), 0)
