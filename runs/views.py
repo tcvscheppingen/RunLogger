@@ -84,6 +84,10 @@ def dashboard(request):
         atl_data.append(metrics['atl'])
         ctl_data.append(metrics['ctl'])
 
+    has_baseline = request.user.workouts.filter(
+        date__lt=today - timedelta(days=7)
+    ).exists()
+
     context = {
         'workouts': workouts,
         'metrics': current_metrics,
@@ -94,6 +98,7 @@ def dashboard(request):
         'chart_dates': dates,
         'chart_atl': atl_data,
         'chart_ctl': ctl_data,
+        'has_baseline': has_baseline,
         'ctl_info': "Chronic Training Load: Your 6-week rolling average of stress. This represents your long-term 'base' or aerobic engine.",
         'atl_info': "Acute Training Load: Your 7-day rolling average of stress. This tracks your recent fatigue and how hard you've worked this week.",
         'status_info': "Training Ratio (ATL/CTL): 0.8–1.3 is Productive; over 1.5 is the Danger Zone (high injury risk).",

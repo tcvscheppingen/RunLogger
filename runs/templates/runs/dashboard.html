@@ -42,7 +42,8 @@
             {% include 'runs/components/info_tooltip.html' with title="Training Status" body=status_info %}
             </div>
             <p class="text-lg font-bold mt-1">
-                {% if metrics.ratio > 1.5 %}<span class="text-red-600">Overreaching ⚠️</span>
+                {% if not has_baseline %}<span class="text-slate-400">Building baseline</span>
+                {% elif metrics.ratio > 1.5 %}<span class="text-red-600">Overreaching ⚠️</span>
                 {% elif metrics.ratio >= 0.8 %}<span class="text-green-600">Productive ✅</span>
                 {% else %}<span class="text-slate-500">Recovery 💤</span>{% endif %}
             </p>
