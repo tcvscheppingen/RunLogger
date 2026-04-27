@@ -1,0 +1,75 @@
+{% extends 'runs/base.html' %}
+
+{% block title %}Register | RunLog{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white dark:bg-slate-800 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mt-10">
+    <div class="text-center mb-8">
+        <h2 class="text-3xl font-bold text-slate-800 dark:text-slate-100">Join RunLog</h2>
+        <p class="text-slate-500 dark:text-slate-400 mt-2">Start tracking your progress today.</p>
+    </div>
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        {% if form.errors %}
+            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+                Please correct the errors below.
+            </div>
+        {% endif %}
+
+        <div class="space-y-4 auth-form">
+            {{ form.as_p }}
+        </div>
+
+        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-md shadow-blue-200 dark:shadow-none mt-6">
+            Create Account
+        </button>
+    </form>
+
+    <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 text-center">
+        <p class="text-sm text-slate-500 dark:text-slate-400">
+            Already have an account?
+            <a href="{% url 'login' %}" class="text-blue-600 font-semibold hover:underline">Log in</a>
+        </p>
+    </div>
+</div>
+
+<style>
+    .auth-form p {
+        margin-bottom: 1rem;
+    }
+
+    .auth-form label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #475569;
+        margin-bottom: 0.25rem;
+    }
+
+    .dark .auth-form label {
+        color: #94a3b8; /* slate-400 */
+    }
+
+    .auth-form input {
+        width: 100%;
+        border-radius: 0.5rem;
+        border: 1px solid #cbd5e1;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .auth-form .helptext {
+        display: block;
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-top: 0.25rem;
+    }
+
+    .auth-form .errorlist {
+        color: #dc2626;
+        font-size: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}

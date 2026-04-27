@@ -1,0 +1,60 @@
+{% extends 'runs/base.html' %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white dark:bg-slate-800 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mt-10">
+    <h2 class="text-2xl font-bold mb-6 text-slate-800 dark:text-slate-100">Login to RunLog</h2>
+
+    <form method="post" class="auth-form">
+        {% csrf_token %}
+
+        <div class="space-y-4">
+            {{ form.as_p }}
+        </div>
+
+        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-100 dark:shadow-none mt-6">
+            Login
+        </button>
+    </form>
+
+    <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 text-center">
+        <p class="text-sm text-slate-500 dark:text-slate-400">
+            Don't have an account?
+            <a href="{% url 'register' %}" class="text-blue-600 font-semibold hover:underline">Register here</a>
+        </p>
+    </div>
+</div>
+
+<style>
+    .auth-form p {
+        margin-bottom: 1.25rem;
+    }
+
+    .auth-form label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #475569; /* slate-600 */
+        margin-bottom: 0.35rem;
+    }
+
+    .dark .auth-form label {
+        color: #94a3b8; /* slate-400 */
+    }
+
+    .auth-form input {
+        width: 100%;
+        border-radius: 0.5rem;
+        border: 1px solid #cbd5e1; /* slate-300 */
+        padding: 0.6rem 0.75rem;
+        background-color: #f8fafc; /* slate-50 */
+        transition: all 0.2s;
+    }
+
+    .auth-form input:focus {
+        outline: none;
+        border-color: #2563eb; /* blue-600 */
+        background-color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+</style>
+{% endblock %}

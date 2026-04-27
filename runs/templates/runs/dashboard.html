@@ -1,0 +1,178 @@
+{% extends 'runs/base.html' %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <p class="text-xs font-bold text-slate-400 uppercase">Monthly Distance</p>
+        <p class="text-2xl font-black text-blue-600">{{ total_distance }}<span
+                class="text-sm font-normal text-slate-400 ml-1">km</span></p>
+    </div>
+    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div class="flex items-center mb-1">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-tight">Fitness (CTL)</p>
+            {% include 'runs/components/info_tooltip.html' with title="Fitness (CTL)" body=ctl_info %}
+        </div>
+        <p class="text-2xl font-black text-blue-600">{{ metrics.ctl|default:"0.0" }}</p>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div class="flex items-center mb-1">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-tight">Fatigue (ATL)</p>
+            {% include 'runs/components/info_tooltip.html' with title="Fatigue (ATL)" body=atl_info %}
+        </div>
+        <p class="text-2xl font-black text-orange-600">{{ metrics.atl|default:"0.0" }}</p>
+    </div>
+    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div class="flex items-center mb-1">
+            <p class="text-xs font-bold text-slate-400 uppercase">Status</p>
+            {% include 'runs/components/info_tooltip.html' with title="Training Status" body=status_info %}
+            </div>
+            <p class="text-lg font-bold mt-1">
+                {% if metrics.ratio > 1.5 %}<span class="text-red-600">Overreaching ⚠️</span>
+                {% elif metrics.ratio >= 0.8 %}<span class="text-green-600">Productive ✅</span>
+                {% else %}<span class="text-slate-500">Recovery 💤</span>{% endif %}
+            </p>
+
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+    {% include 'runs/components/workout_form.html' %}
+
+    <div class="lg:col-span-2">
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm h-full">
+            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">Fitness vs. Fatigue</h3>
+            <div class="relative h-[300px] w-full">
+                <canvas id="loadChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div class="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+        <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Recent Runs</h2>
+        <span class="text-xs text-slate-400 font-medium">{{ workouts|length }} Total Sessions</span>
+    </div>
+
+    <div class="overflow-y-auto" style="max-height: 300px;">
+        <table class="w-full text-left text-sm text-slate-500 border-separate border-spacing-0">
+            <thead class="bg-slate-50 dark:bg-slate-900 uppercase text-[10px] font-bold text-slate-700 dark:text-slate-300 sticky top-0 z-10 shadow-sm">
+                <tr>
+                    <th class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">Date</th>
+                    <th class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">Stats</th>
+                    <th class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">Pace</th>
+                    <th class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                {% for run in workouts %}
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700 transition">
+                    <td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{{ run.date|date:"M d, Y" }}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-slate-700 dark:text-slate-300">{{ run.distance }}km</span>
+                            <span class="text-slate-300 dark:text-slate-600">|</span>
+                            <span>{{ run.duration_display }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 font-mono font-bold text-blue-600">
+                        {{ run.pace }}<span class="text-[10px] font-normal text-slate-400">/km</span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <form action="{% url 'delete_run' run.pk %}" method="POST"
+                            onsubmit="return confirm('Delete this run?');">
+                            {% csrf_token %}
+                            <button type="submit" class="text-slate-300 hover:text-red-600 transition">
+                                <svg class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{{ chart_dates|json_script:"chart-dates" }}
+{{ chart_ctl|json_script:"chart-ctl" }}
+{{ chart_atl|json_script:"chart-atl" }}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const chartDates = JSON.parse(document.getElementById('chart-dates').textContent);
+        const chartCtl = JSON.parse(document.getElementById('chart-ctl').textContent);
+        const chartAtl = JSON.parse(document.getElementById('chart-atl').textContent);
+
+        const ctx = document.getElementById('loadChart').getContext('2d');
+
+        let chartStatus = Chart.getChart("loadChart");
+        if (chartStatus != undefined) {
+            chartStatus.destroy();
+        }
+
+        const isDark = document.documentElement.classList.contains('dark');
+        const tickColor = isDark ? '#94a3b8' : '#64748b';   // slate-400 : slate-500
+        const gridColor = isDark ? '#334155' : '#e2e8f0';   // slate-700 : slate-200
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartDates,
+                datasets: [
+                    {
+                        label: 'Fitness',
+                        data: chartCtl,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.05)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 0
+                    },
+                    {
+                        label: 'Fatigue',
+                        data: chartAtl,
+                        borderColor: '#f97316',
+                        tension: 0.4,
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: tickColor,
+                            maxRotation: 45,
+                            minRotation: 45,
+                            autoSkip: true,
+                            maxTicksLimit: 10
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: tickColor },
+                        grid: { color: gridColor, borderDash: [2, 2] }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
