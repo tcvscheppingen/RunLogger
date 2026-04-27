@@ -6,7 +6,8 @@
 {% if messages %}
 <div class="mb-6 space-y-2">
     {% for message in messages %}
-    <div class="px-4 py-3 rounded-lg text-sm font-medium border
+    <div
+        class="px-4 py-3 rounded-lg text-sm font-medium border
         {% if message.tags == 'success' %}bg-green-50 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700
         {% else %}bg-yellow-50 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700{% endif %}">
         {{ message }}
@@ -40,13 +41,13 @@
         <div class="flex items-center mb-1">
             <p class="text-xs font-bold text-slate-400 uppercase">Status</p>
             {% include 'runs/components/info_tooltip.html' with title="Training Status" body=status_info %}
-            </div>
-            <p class="text-lg font-bold mt-1">
-                {% if not has_baseline %}<span class="text-slate-400">Building baseline</span>
-                {% elif metrics.ratio > 1.5 %}<span class="text-red-600">Overreaching ⚠️</span>
-                {% elif metrics.ratio >= 0.8 %}<span class="text-green-600">Productive ✅</span>
-                {% else %}<span class="text-slate-500">Recovery 💤</span>{% endif %}
-            </p>
+        </div>
+        <p class="text-lg font-bold mt-1">
+            {% if not has_baseline %}<span class="text-slate-400">Building baseline</span>
+            {% elif metrics.ratio > 1.5 %}<span class="text-red-600">Overreaching ⚠️</span>
+            {% elif metrics.ratio >= 0.8 %}<span class="text-green-600">Productive ✅</span>
+            {% else %}<span class="text-slate-500">Recovery 💤</span>{% endif %}
+        </p>
 
     </div>
 </div>
@@ -60,7 +61,8 @@
     </div>
 </div>
 
-<div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+<div
+    class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
     <div class="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
         <div class="flex items-center gap-3">
             <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Recent Runs</h2>
@@ -70,14 +72,16 @@
             <a href="{% url 'export_csv' %}"
                 class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 text-xs font-bold px-3 py-2 rounded-lg transition">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 Export
             </a>
             <button id="openImportModal"
                 class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 text-xs font-bold px-3 py-2 rounded-lg transition">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l4-4m0 0l4 4m-4-4v12" />
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l4-4m0 0l4 4m-4-4v12" />
                 </svg>
                 Import
             </button>
@@ -93,18 +97,21 @@
 
     <div class="overflow-y-auto" style="max-height: 300px;">
         <table class="w-full text-left text-sm text-slate-500 border-separate border-spacing-0">
-            <thead class="bg-slate-50 dark:bg-slate-900 uppercase text-[10px] font-bold text-slate-700 dark:text-slate-300 sticky top-0 z-10 shadow-sm">
+            <thead
+                class="bg-slate-50 dark:bg-slate-900 uppercase text-[10px] font-bold text-slate-700 dark:text-slate-300 sticky top-0 z-10 shadow-sm">
                 <tr>
                     <th class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">Date</th>
                     <th class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">Stats</th>
                     <th class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">Pace</th>
+                    <th class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">Load</th>
                     <th class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 text-right">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                 {% for run in workouts %}
                 <tr class="hover:bg-slate-50 dark:hover:bg-slate-700 transition">
-                    <td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{{ run.date|date:"M d, Y" }}</td>
+                    <td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{{ run.date|date:"M d, Y" }}
+                    </td>
                     <td class="px-6 py-4">
                         <div class="flex items-center space-x-2">
                             <span class="font-bold text-slate-700 dark:text-slate-300">{{ run.distance }}km</span>
@@ -114,6 +121,9 @@
                     </td>
                     <td class="px-6 py-4 font-mono font-bold text-blue-600">
                         {{ run.pace }}<span class="text-[10px] font-normal text-slate-400">/km</span>
+                    </td>
+                    <td class="px-6 py-4 font-mono font-bold text-blue-600">
+                        {{ run.session_load|floatformat:0 }}
                     </td>
                     <td class="px-6 py-4 text-right">
                         <form action="{% url 'delete_run' run.pk %}" method="POST"
@@ -158,15 +168,17 @@
         </button>
         <div class="p-6">
             <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100 mb-1">Import Runs</h2>
-            <p class="text-xs text-slate-400 mb-5">Upload a CSV file to bulk-import your runs. Each row must have the columns below.</p>
-            <div class="mb-5 bg-slate-50 dark:bg-slate-900 rounded-lg px-4 py-3 text-xs font-mono text-slate-500 dark:text-slate-400 overflow-x-auto whitespace-nowrap">
+            <p class="text-xs text-slate-400 mb-5">Upload a CSV file to bulk-import your runs. Each row must have the
+                columns below.</p>
+            <div
+                class="mb-5 bg-slate-50 dark:bg-slate-900 rounded-lg px-4 py-3 text-xs font-mono text-slate-500 dark:text-slate-400 overflow-x-auto whitespace-nowrap">
                 date, distance_km, duration_hours, duration_minutes, duration_seconds, notes, rpe
             </div>
             <form action="{% url 'import_csv' %}" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
-                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2" for="csv_file">CSV File</label>
-                <input id="csv_file" name="csv_file" type="file" accept=".csv"
-                    class="block w-full text-sm text-slate-500 dark:text-slate-400
+                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2"
+                    for="csv_file">CSV File</label>
+                <input id="csv_file" name="csv_file" type="file" accept=".csv" class="block w-full text-sm text-slate-500 dark:text-slate-400
                         file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
                         file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700
                         dark:file:bg-slate-700 dark:file:text-slate-300
