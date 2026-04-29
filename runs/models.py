@@ -2,11 +2,12 @@ import datetime
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Workout(models.Model):
     user = models.ForeignKey(User, related_name="workouts", on_delete=models.CASCADE)
-    date = models.DateField(default=datetime.date.today)
+    date = models.DateField(default=timezone.now().date())
     distance = models.FloatField(
         null=True,
         help_text="Distance in kilometers",
