@@ -2,6 +2,15 @@
     <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">Log a New Run</h3>
     <form method="POST" class="space-y-4">
         {% csrf_token %}
+        <div class="mb-4">
+            <label for="{{ form.date.id_for_label }}"
+                class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+                Workout Date
+            </label>
+            <div class="relative">
+                {{ form.date }}
+            </div>
+        </div>
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Km</label>
@@ -9,7 +18,8 @@
             </div>
         </div>
         <div class="mb-4">
-            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Duration (HH:MM:SS)</label>
+            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Duration
+                (HH:MM:SS)</label>
             <div class="grid grid-cols-3 gap-2">
                 <div class="relative">
                     {{ form.hours }}
@@ -27,8 +37,10 @@
         </div>
         <div>
             <div class="flex justify-between items-center mb-1">
+
                 <div class="flex items-center">
-                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Intensity (RPE)</label>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Intensity
+                        (RPE)</label>
                     {% include 'runs/components/info_tooltip.html' with title="Intensity" body=rpe_info %}
                 </div>
                 <span id="rpeValue"
@@ -42,8 +54,7 @@
                     slider.addEventListener('input', function () { display.textContent = this.value; });
                 })();
             </script>
-            <div
-                class="flex justify-between text-[10px] font-bold text-slate-400 px-1 mt-1 uppercase tracking-tighter">
+            <div class="flex justify-between text-[10px] font-bold text-slate-400 px-1 mt-1 uppercase tracking-tighter">
                 <span>Easy</span>
                 <span>Moderate</span>
                 <span>Max</span>

@@ -57,7 +57,7 @@ def dashboard(request):
 
     # Calculate Monthly Stats
     monthly_workouts = Workout.objects.filter(
-        date__year=now.year, date__month=now.month)
+        date__year=now.year, date__month=now.month, user=request.user)
 
     # .aggregate returns a dictionary, e.g., {'distance__sum': 42.5}
     total_distance = monthly_workouts.aggregate(
