@@ -92,7 +92,7 @@ class WorkoutModelTests(TestCase):
 
 class WorkoutFormTests(TestCase):
     def _post_data(self, **overrides):
-        data = {'distance': '10', 'hours': '0', 'minutes': '30', 'seconds': '0', 'rpe': '5', 'notes': ''}
+        data = {'date': '2026-01-01', 'distance': '10', 'hours': '0', 'minutes': '30', 'seconds': '0', 'rpe': '5', 'notes': ''}
         data.update({k: str(v) for k, v in overrides.items()})
         return data
 
@@ -179,7 +179,7 @@ class DashboardViewTests(TestCase):
         self.client.login(username='runner', password='testpass123')
 
     def _post_run(self, **overrides):
-        data = {'distance': '10', 'hours': '0', 'minutes': '30', 'seconds': '0', 'rpe': '5', 'notes': ''}
+        data = {'date': '2026-01-01', 'distance': '10', 'hours': '0', 'minutes': '30', 'seconds': '0', 'rpe': '5', 'notes': ''}
         data.update({k: str(v) for k, v in overrides.items()})
         return self.client.post(reverse('dashboard'), data)
 
