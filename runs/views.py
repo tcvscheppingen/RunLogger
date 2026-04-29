@@ -7,9 +7,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Sum, F
 from django.utils import timezone
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login
+from django.contrib.auth import login, views as auth_views
 from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.contrib import messages
+from django_ratelimit.decorators import ratelimit
 from .models import Workout
 from .forms import WorkoutForm
 from runs.utils import calculate_training_metrics_for_date
@@ -18,6 +20,7 @@ from django.http import HttpResponse, HttpResponseForbidden
 logger = logging.getLogger(__name__)
 
 
+@ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def register(request):
     if request.method == "POST":
         form = UserCreationForm(request.POST)
@@ -28,6 +31,11 @@ def register(request):
     else:
         form = UserCreationForm()
     return render(request, 'runs/register.html', {'form': form})
+
+
+@method_decorator(ratelimit(key='ip', rate='10/m', method='POST', block=True), name='dispatch')
+class RateLimitedLoginView(auth_views.LoginView):
+    pass
 
 
 @login_required

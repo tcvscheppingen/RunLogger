@@ -17,7 +17,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from runs import views 
+from django.http import HttpResponse
+from django_ratelimit.exceptions import Ratelimited
+from runs import views
+
+
+def handler403(request, exception=None):
+    if isinstance(exception, Ratelimited):
+        return HttpResponse("Too many attempts. Please wait a moment and try again.", status=429)
+    return HttpResponse("Forbidden", status=403)
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,6 +37,6 @@ urlpatterns = [
     path('register/', views.register, name='register'),
 
     # Built-in Auth views
-    path('login/', auth_views.LoginView.as_view(template_name='runs/login.html'), name='login'),
+    path('login/', views.RateLimitedLoginView.as_view(template_name='runs/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
 ]
