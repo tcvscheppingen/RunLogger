@@ -43,10 +43,10 @@
             {% include 'runs/components/info_tooltip.html' with title="Training Status" body=status_info %}
         </div>
         <p class="text-lg font-bold mt-1">
-            {% if not has_baseline %}<span class="text-slate-400">Building baseline</span>
-            {% elif metrics.ratio > 1.5 %}<span class="text-red-600">Overreaching ⚠️</span>
-            {% elif metrics.ratio >= 0.8 %}<span class="text-green-600">Productive ✅</span>
-            {% else %}<span class="text-slate-500">Recovery 💤</span>{% endif %}
+            {% if not has_baseline %}<span class="text-slate-400 dark:text-dracula-fg">Building baseline</span>
+            {% elif metrics.ratio > 1.5 %}<span class="text-red-600 dark:text-dracula-red">Overreaching ⚠️</span>
+            {% elif metrics.ratio >= 0.8 %}<span class="text-green-600 dark:text-dracula-green">Productive ✅</span>
+            {% else %}<span class="text-slate-500 dark:text-dracula-cyan">Recovery 💤</span>{% endif %}
         </p>
 
     </div>
@@ -110,7 +110,7 @@
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-dracula-line">
                 {% for run in workouts %}
-                <tr class="odd:bg-white even:bg-slate-50 dark:odd:bg-dracula-line dark:even:bg-dracula-bg hover:bg-blue-50 dark:hover:bg-dracula-comment/20 transition">
+                <tr class="odd:bg-white even:bg-slate-50 dark:odd:bg-dracula-line dark:even:bg-[#4a4c5e] hover:bg-blue-50 dark:hover:bg-dracula-comment/20 transition">
                     <td class="px-6 py-4 font-medium text-slate-900 dark:text-dracula-fg">{{ run.date|date:"M d, Y" }}
                     </td>
                     <td class="px-6 py-4">
@@ -260,7 +260,7 @@
 
         const isDark = document.documentElement.classList.contains('dark');
         const tickColor = isDark ? '#6272a4' : '#64748b';   // dracula comment : slate-500
-        const gridColor = isDark ? 'rgba(248, 248, 242, 0.15)' : 'rgba(0, 0, 0, 0.08)';   // dracula fg subtle : neutral gray
+        const gridColor = isDark ? 'rgba(248, 248, 242, 0.5)' : 'rgba(0, 0, 0, 0.08)';   // dracula fg 50% : neutral gray
         const fitnessColor = isDark ? '#8be9fd' : '#2563eb'; // dracula cyan : blue-600
         const fatigueColor = isDark ? '#ffb86c' : '#f97316'; // dracula orange : orange-600
 
