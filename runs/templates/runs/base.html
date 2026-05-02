@@ -1,35 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 
+{% load tailwind_tags %}
+{% tailwind_css %}
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Run Tracker{% endblock %}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        dracula: {
-                            bg: '#282a36',
-                            line: '#44475a',
-                            fg: '#f8f8f2',
-                            comment: '#6272a4',
-                            purple: '#bd93f9',
-                            pink: '#ff79c6',
-                            green: '#50fa7b',
-                            yellow: '#f1fa8c',
-                            red: '#ff5555',
-                            cyan: '#8be9fd',
-                            orange: '#ffb86c',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
     <script>
         // Apply dark mode before page renders to prevent flash of unstyled content
         if (localStorage.theme === 'dark') {
@@ -88,27 +66,27 @@
         .dark input[type="email"],
         .dark input[type="date"],
         .dark textarea {
-            border-color: #6272a4; /* dracula comment */
-            background-color: #282a36; /* dracula bg */
-            color: #f8f8f2; /* dracula fg */
+            border-color: var(--dracula-comment);
+            background-color: var(--dracula-bg);
+            color: var(--dracula-fg);
         }
 
         .dark input:focus, .dark textarea:focus {
-            border-color: #bd93f9; /* dracula purple */
-            background-color: #282a36;
-            box-shadow: 0 0 0 3px rgba(189, 147, 249, 0.2);
+            border-color: var(--dracula-purple);
+            background-color: var(--dracula-bg);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--dracula-purple) 20%, transparent);
         }
 
         .dark input[type="range"] {
-            background: #6272a4; /* dracula comment */
+            background: var(--dracula-comment);
         }
 
         .dark input[type="range"]::-webkit-slider-thumb {
-            background: #bd93f9; /* dracula purple */
+            background: var(--dracula-purple);
         }
 
         .dark input[type="range"]::-moz-range-thumb {
-            background: #bd93f9; /* dracula purple */
+            background: var(--dracula-purple);
             border: none;
         }
     </style>
