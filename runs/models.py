@@ -5,9 +5,18 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    timezone = models.CharField(max_length=64, default="UTC")
+
+    def __str__(self):
+        return f"{self.user.username} profile"
+
+
 class Workout(models.Model):
     user = models.ForeignKey(User, related_name="workouts", on_delete=models.CASCADE)
-    date = models.DateField(default=timezone.now().date())
+    date = models.DateField(default=timezone.localdate)
     distance = models.FloatField(
         null=True,
         help_text="Distance in kilometers",
