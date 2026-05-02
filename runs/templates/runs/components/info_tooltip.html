@@ -1,13 +1,13 @@
 <div class="tooltip-container inline-flex items-center ml-1">
     <svg xmlns="http://www.w3.org/2000/svg"
-        class="h-3.5 w-3.5 text-slate-300 hover:text-blue-500 transition cursor-help" fill="none" viewBox="0 0 24 24"
+        class="h-3.5 w-3.5 text-slate-300 hover:text-blue-500 dark:hover:text-dracula-purple transition cursor-help" fill="none" viewBox="0 0 24 24"
         stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
 
-    <span class="tooltip-text shadow-xl border border-slate-700">
-        <strong class="block border-b border-slate-600 mb-1 pb-1 text-blue-400">{{ title }}</strong>
+    <span class="tooltip-text shadow-xl border border-dracula-comment">
+        <strong class="block border-b border-dracula-comment mb-1 pb-1 text-dracula-purple">{{ title }}</strong>
         {{ body }}
     </span>
 </div>
@@ -24,9 +24,9 @@
     .tooltip-text {
         visibility: hidden;
         width: 220px;
-        background-color: #1e293b;
-        /* slate-800 */
-        color: #fff;
+        background-color: #282a36;
+        /* dracula bg */
+        color: #f8f8f2; /* dracula fg */
         text-align: center;
         border-radius: 8px;
         padding: 10px;
@@ -53,7 +53,7 @@
         margin-left: -5px;
         border-width: 5px;
         border-style: solid;
-        border-color: #1e293b transparent transparent transparent;
+        border-color: #282a36 transparent transparent transparent;
     }
 
     /* Show on Hover */

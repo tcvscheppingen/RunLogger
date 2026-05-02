@@ -1,10 +1,10 @@
 <div class="p-6">
-    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">Log a New Run</h3>
+    <h3 class="text-lg font-bold text-slate-800 dark:text-dracula-fg mb-4">Log a New Run</h3>
     <form method="POST" class="space-y-4">
         {% csrf_token %}
         <div class="mb-4">
             <label for="{{ form.date.id_for_label }}"
-                class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+                class="block text-xs font-bold text-slate-500 dark:text-dracula-fg uppercase mb-1">
                 Workout Date
             </label>
             <div class="relative">
@@ -13,25 +13,25 @@
         </div>
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Km</label>
+                <label class="block text-xs font-bold text-slate-500 dark:text-dracula-fg uppercase">Km</label>
                 {{ form.distance }}
             </div>
         </div>
         <div class="mb-4">
-            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Duration
+            <label class="block text-xs font-bold text-slate-500 dark:text-dracula-fg uppercase mb-2">Duration
                 (HH:MM:SS)</label>
             <div class="grid grid-cols-3 gap-2">
                 <div class="relative">
                     {{ form.hours }}
-                    <span class="absolute right-2 bottom-2 text-[10px] text-slate-400">h</span>
+                    <span class="absolute right-2 bottom-2 text-[10px] text-slate-400 dark:text-dracula-fg">h</span>
                 </div>
                 <div class="relative">
                     {{ form.minutes }}
-                    <span class="absolute right-2 bottom-2 text-[10px] text-slate-400">m</span>
+                    <span class="absolute right-2 bottom-2 text-[10px] text-slate-400 dark:text-dracula-fg">m</span>
                 </div>
                 <div class="relative">
                     {{ form.seconds }}
-                    <span class="absolute right-2 bottom-2 text-[10px] text-slate-400">s</span>
+                    <span class="absolute right-2 bottom-2 text-[10px] text-slate-400 dark:text-dracula-fg">s</span>
                 </div>
             </div>
         </div>
@@ -39,12 +39,12 @@
             <div class="flex justify-between items-center mb-1">
 
                 <div class="flex items-center">
-                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Intensity
+                    <label class="block text-xs font-bold text-slate-500 dark:text-dracula-fg uppercase">Intensity
                         (RPE)</label>
                     {% include 'runs/components/info_tooltip.html' with title="Intensity" body=rpe_info %}
                 </div>
                 <span id="rpeValue"
-                    class="text-sm font-black text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded border border-blue-100 dark:border-blue-800">5</span>
+                    class="text-sm font-black text-blue-600 dark:text-dracula-cyan bg-blue-50 dark:bg-dracula-purple/20 px-2 py-0.5 rounded border border-blue-100 dark:border-dracula-purple">5</span>
             </div>
             {{ form.rpe }}
             <script>
@@ -54,7 +54,7 @@
                     slider.addEventListener('input', function () { display.textContent = this.value; });
                 })();
             </script>
-            <div class="flex justify-between text-[10px] font-bold text-slate-400 px-1 mt-1 uppercase tracking-tighter">
+            <div class="flex justify-between text-[10px] font-bold text-slate-400 dark:text-dracula-fg px-1 mt-1 uppercase tracking-tighter">
                 <span>Easy</span>
                 <span>Moderate</span>
                 <span>Max</span>
@@ -62,12 +62,12 @@
         </div>
 
         <div>
-            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Notes</label>
+            <label class="block text-xs font-bold text-slate-500 dark:text-dracula-fg uppercase">Notes</label>
             {{ form.notes }}
         </div>
 
         <button type="submit"
-            class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-100 dark:shadow-none">
+            class="w-full bg-blue-600 hover:bg-blue-700 dark:bg-dracula-purple dark:hover:bg-dracula-purple/80 text-white dark:text-dracula-bg py-3 rounded-lg font-bold transition shadow-lg shadow-blue-100 dark:shadow-dracula-purple/30">
             Save Workout
         </button>
     </form>

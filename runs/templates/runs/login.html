@@ -1,8 +1,8 @@
 {% extends 'runs/base.html' %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white dark:bg-slate-800 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mt-10">
-    <h2 class="text-2xl font-bold mb-6 text-slate-800 dark:text-slate-100">Login to RunLog</h2>
+<div class="max-w-md mx-auto bg-white dark:bg-dracula-line p-8 rounded-xl shadow-sm border border-slate-200 dark:border-dracula-line mt-10">
+    <h2 class="text-2xl font-bold mb-6 text-slate-800 dark:text-dracula-fg">Login to RunLog</h2>
 
     <form method="post" class="auth-form">
         {% csrf_token %}
@@ -16,8 +16,8 @@
         </button>
     </form>
 
-    <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 text-center">
-        <p class="text-sm text-slate-500 dark:text-slate-400">
+    <div class="mt-8 pt-6 border-t border-slate-100 dark:border-dracula-line text-center">
+        <p class="text-sm text-slate-500 dark:text-dracula-fg">
             Don't have an account?
             <a href="{% url 'register' %}" class="text-blue-600 font-semibold hover:underline">Register here</a>
         </p>
@@ -38,7 +38,7 @@
     }
 
     .dark .auth-form label {
-        color: #94a3b8; /* slate-400 */
+        color: #6272a4; /* dracula comment */
     }
 
     .auth-form input {
