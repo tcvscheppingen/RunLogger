@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
-from .models import Workout
+from .models import Workout, UserProfile
 from .forms import WorkoutForm
 from .utils import calculate_training_metrics_for_date
 from datetime import date, timedelta
@@ -529,3 +529,85 @@ class ImportCSVTests(TestCase):
         csv_file = make_csv([['2024-01-01', 10.0, 0, 60, 0, '', 5]])
         self._post_csv(csv_file)
         self.assertEqual(Workout.objects.filter(user=other).count(), 0)
+
+
+# ---------------------------------------------------------------------------
+# UserProfile tests
+# ---------------------------------------------------------------------------
+
+class UserProfileModelTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='runner', password='testpass123')
+        self.profile = UserProfile.objects.create(user=self.user, height=183, weight=70)
+
+    def test_str(self):
+        self.assertEqual(str(self.profile), 'runner profile')
+
+    def test_height_in_feet_inches(self):
+        # 183 cm = ~72.05 inches = 6 feet 0 inches
+        self.assertEqual(self.profile.height_in_feet_inches, "6'0\"")
+
+    def test_height_in_feet_inches_zero_returns_none(self):
+        self.profile.height = 0
+        self.assertIsNone(self.profile.height_in_feet_inches)
+
+    def test_height_in_meters(self):
+        self.assertEqual(self.profile.height_in_meters, 1.83)
+
+    def test_weight_in_lbs(self):
+        self.assertAlmostEqual(float(self.profile.weight_in_lbs), 154.3, places=0)
+
+
+class UserProfileViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='runner', password='testpass123')
+        self.client = Client()
+        self.url = reverse('user_profile')
+
+    def test_login_required(self):
+        response = self.client.get(self.url)
+        self.assertRedirects(response, f"{reverse('login')}?next={self.url}")
+
+    def test_get_renders_form(self):
+        self.client.login(username='runner', password='testpass123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('form', response.context)
+        self.assertIn('profile', response.context)
+
+    def test_get_creates_profile_if_missing(self):
+        self.client.login(username='runner', password='testpass123')
+        self.assertFalse(UserProfile.objects.filter(user=self.user).exists())
+        self.client.get(self.url)
+        self.assertTrue(UserProfile.objects.filter(user=self.user).exists())
+
+    def test_post_updates_profile(self):
+        self.client.login(username='runner', password='testpass123')
+        response = self.client.post(self.url, {
+            'first_name': 'Jan',
+            'intersertion': 'van',
+            'last_name': 'Houten',
+            'weight': '75.00',
+            'height': '180',
+            'timezone': 'Europe/Amsterdam',
+        })
+        self.assertRedirects(response, self.url)
+        profile = UserProfile.objects.get(user=self.user)
+        self.assertEqual(profile.first_name, 'Jan')
+        self.assertEqual(profile.last_name, 'Houten')
+        self.assertEqual(profile.height, 180)
+
+    def test_post_invalid_does_not_save(self):
+        self.client.login(username='runner', password='testpass123')
+        UserProfile.objects.create(user=self.user, height=170, weight=65)
+        # height is an IntegerField — a non-numeric value is invalid
+        response = self.client.post(self.url, {
+            'first_name': 'Jan',
+            'intersertion': '',
+            'last_name': 'Houten',
+            'weight': '75.00',
+            'height': 'not_a_number',
+            'timezone': 'UTC',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(UserProfile.objects.get(user=self.user).height, 170)

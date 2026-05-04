@@ -101,8 +101,9 @@
             </h1>
             <div class="flex items-center space-x-6">
                 {% if user.is_authenticated %}
-                <span class="text-blue-100 text-sm italic">Hi, {{ user.username }}!</span>
+                <span class="text-blue-100 text-sm italic">Hi, {{ user.profile.first_name|default:user.username|capfirst }}!</span>
                 <a href="{% url 'dashboard' %}" class="hover:text-blue-200 dark:hover:text-dracula-fg transition">Dashboard</a>
+                <a href="{% url 'user_profile' %}" class="hover:text-blue-200 dark:hover:text-dracula-fg transition">{{ user.profile.first_name|capfirst|default:"Profile" }}</a>
 
                 <form action="{% url 'logout' %}" method="post" class="inline">
                     {% csrf_token %}
@@ -141,6 +142,8 @@
         {% block content %}
         {% endblock %}
     </main>
+
+    {% include 'runs/components/toast.html' %}
 
     <script>
         function updateToggleIcon() {

@@ -3,19 +3,6 @@
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-{% if messages %}
-<div class="mb-6 space-y-2">
-    {% for message in messages %}
-    <div
-        class="px-4 py-3 rounded-lg text-sm font-medium border
-        {% if message.tags == 'success' %}bg-green-50 text-green-800 border-green-200 dark:bg-dracula-green/20 dark:text-dracula-green dark:border-dracula-green
-        {% else %}bg-yellow-50 text-yellow-800 border-yellow-200 dark:bg-dracula-yellow/20 dark:text-dracula-yellow dark:border-dracula-yellow{% endif %}">
-        {{ message }}
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
-
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
     <div class="bg-white dark:bg-dracula-line p-4 rounded-xl border border-slate-200 dark:border-dracula-line shadow-sm">
         <p class="text-xs font-bold text-slate-400 dark:text-dracula-fg uppercase">Monthly Distance</p>

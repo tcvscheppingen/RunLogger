@@ -1,0 +1,102 @@
+{% extends 'runs/base.html' %}
+
+{% block title %}Profile — Run Tracker{% endblock %}
+
+{% block content %}
+
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <h1 class="text-2xl font-black text-slate-800 dark:text-dracula-fg">Your Profile</h1>
+        <p class="text-sm text-slate-400 dark:text-dracula-comment mt-1">Personal details used to tailor your experience.</p>
+    </div>
+    <button id="openProfileModal"
+        class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 dark:bg-dracula-purple dark:hover:bg-dracula-purple/80 text-white dark:text-dracula-bg text-xs font-bold px-3 py-2 rounded-lg transition shadow-sm">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H9v-2.414a2 2 0 01.586-1.414z" />
+        </svg>
+        Edit profile
+    </button>
+</div>
+
+<div class="bg-white dark:bg-dracula-line rounded-xl border border-slate-200 dark:border-dracula-line shadow-sm p-6 max-w-lg">
+    <dl class="space-y-4">
+        <div>
+            <dt class="text-xs font-bold text-slate-400 dark:text-dracula-comment uppercase tracking-wide">Name</dt>
+            <dd class="mt-1 text-sm font-medium text-slate-800 dark:text-dracula-fg">
+                {% if profile.first_name or profile.last_name %}
+                    {{ profile.first_name }} {{ profile.last_name }}
+                {% else %}
+                    <span class="text-slate-400 dark:text-dracula-comment italic">Not set</span>
+                {% endif %}
+            </dd>
+        </div>
+
+        <div>
+            <dt class="text-xs font-bold text-slate-400 dark:text-dracula-comment uppercase tracking-wide">Height</dt>
+            <dd class="mt-1 text-sm font-medium text-slate-800 dark:text-dracula-fg">
+                {% if profile.height %}
+                    {{ profile.height }} cm
+                    <span class="text-slate-400 dark:text-dracula-comment text-xs ml-1">({{ profile.height_in_feet_inches }})</span>
+                {% else %}
+                    <span class="text-slate-400 dark:text-dracula-comment italic">Not set</span>
+                {% endif %}
+            </dd>
+        </div>
+
+        <div>
+            <dt class="text-xs font-bold text-slate-400 dark:text-dracula-comment uppercase tracking-wide">Weight</dt>
+            <dd class="mt-1 text-sm font-medium text-slate-800 dark:text-dracula-fg">
+                {% if profile.weight %}
+                    {{ profile.weight }} kg
+                    <span class="text-slate-400 dark:text-dracula-comment text-xs ml-1">({{ profile.weight_in_lbs|floatformat:1 }} lbs)</span>
+                {% else %}
+                    <span class="text-slate-400 dark:text-dracula-comment italic">Not set</span>
+                {% endif %}
+            </dd>
+        </div>
+
+        <div>
+            <dt class="text-xs font-bold text-slate-400 dark:text-dracula-comment uppercase tracking-wide">Timezone</dt>
+            <dd class="mt-1 text-sm font-medium text-slate-800 dark:text-dracula-fg">
+                {{ profile.timezone|default:"UTC" }}
+            </dd>
+        </div>
+    </dl>
+</div>
+
+<!-- Edit profile modal -->
+<div id="profileModal" data-has-errors="{{ form.errors|yesno:'1,0' }}" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+    <div class="bg-white dark:bg-dracula-line rounded-xl shadow-xl w-full max-w-md relative">
+        <button id="closeProfileModal"
+            class="absolute top-4 right-4 text-slate-400 dark:text-dracula-fg hover:text-slate-600 dark:hover:text-dracula-purple transition">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        {% include 'runs/components/profile_form.html' %}
+    </div>
+</div>
+
+<script>
+    const profileModal = document.getElementById('profileModal');
+
+    function openProfileModal() {
+        profileModal.classList.remove('hidden');
+        profileModal.classList.add('flex');
+    }
+
+    function closeProfileModal() {
+        profileModal.classList.add('hidden');
+        profileModal.classList.remove('flex');
+    }
+
+    document.getElementById('openProfileModal').addEventListener('click', openProfileModal);
+    document.getElementById('closeProfileModal').addEventListener('click', closeProfileModal);
+    profileModal.addEventListener('click', function (e) {
+        if (e.target === profileModal) closeProfileModal();
+    });
+
+    if (profileModal.dataset.hasErrors === '1') openProfileModal();
+</script>
+
+{% endblock %}

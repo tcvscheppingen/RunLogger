@@ -1,0 +1,49 @@
+<div class="p-6">
+    <h2 class="text-xl font-bold text-slate-800 dark:text-dracula-fg mb-1">Edit Profile</h2>
+    <p class="text-xs text-slate-400 dark:text-dracula-comment mb-5">Update your personal details.</p>
+
+    <form method="POST" novalidate class="space-y-4">
+        {% csrf_token %}
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-500 dark:text-dracula-fg uppercase tracking-wide mb-1" for="{{ form.first_name.id_for_label }}">First name</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}<p class="text-red-500 text-xs mt-1">{{ form.first_name.errors|join:", " }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 dark:text-dracula-fg uppercase tracking-wide mb-1" for="{{ form.last_name.id_for_label }}">Last name</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}<p class="text-red-500 text-xs mt-1">{{ form.last_name.errors|join:", " }}</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-500 dark:text-dracula-fg uppercase tracking-wide mb-1" for="{{ form.weight.id_for_label }}">
+                    Weight <span class="normal-case font-normal text-slate-400">(kg)</span>
+                </label>
+                {{ form.weight }}
+                {% if form.weight.errors %}<p class="text-red-500 text-xs mt-1">{{ form.weight.errors|join:", " }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 dark:text-dracula-fg uppercase tracking-wide mb-1" for="{{ form.height.id_for_label }}">
+                    Height <span class="normal-case font-normal text-slate-400">(cm)</span>
+                </label>
+                {{ form.height }}
+                {% if form.height.errors %}<p class="text-red-500 text-xs mt-1">{{ form.height.errors|join:", " }}</p>{% endif %}
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-xs font-bold text-slate-500 dark:text-dracula-fg uppercase tracking-wide mb-1" for="{{ form.timezone.id_for_label }}">Timezone</label>
+            {{ form.timezone }}
+            {% if form.timezone.errors %}<p class="text-red-500 text-xs mt-1">{{ form.timezone.errors|join:", " }}</p>{% endif %}
+        </div>
+
+        <button type="submit"
+            class="w-full bg-blue-600 hover:bg-blue-700 dark:bg-dracula-purple dark:hover:bg-dracula-purple/80 text-white dark:text-dracula-bg text-sm font-bold py-2.5 rounded-lg transition shadow-sm">
+            Save changes
+        </button>
+    </form>
+</div>
