@@ -21,10 +21,12 @@ class Split(models.Model):
         validators=[MinValueValidator(1), MaxValueValidator(59)]
     )
 
-    @property
-    def duration_minutes(self):
-        return self.duration_seconds / 60
-
+    def _total_seconds(self):
+        return (
+            (self.duration_minutes or 0) * 60
+            + (self.duration_seconds or 0)
+        )
+        
     @property
     def distance_kilometers(self):
         return self.distance_meters / 1000
