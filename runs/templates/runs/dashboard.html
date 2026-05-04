@@ -149,7 +149,7 @@
 </div>
 
 <!-- Log a Run modal -->
-<div id="logRunModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+<div id="logRunModal" data-has-errors="{{ form.errors|yesno:'1,0' }}" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
     <div class="bg-white dark:bg-dracula-line rounded-xl shadow-xl w-full max-w-md relative">
         <button id="closeLogModal"
             class="absolute top-4 right-4 text-slate-400 dark:text-dracula-fg hover:text-slate-600 dark:hover:text-dracula-purple transition">
@@ -240,9 +240,7 @@
         if (e.target === importModal) closeImportModal();
     });
 
-    {% if form.errors %}
-    openModal();
-    {% endif %}
+    if (modal.dataset.hasErrors === '1') openModal();
 
     // Fitness chart
     document.addEventListener('DOMContentLoaded', function () {
