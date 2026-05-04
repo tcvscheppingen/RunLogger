@@ -6,14 +6,6 @@ from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
-    timezone = models.CharField(max_length=64, default="UTC")
-
-    def __str__(self):
-        return f"{self.user.username} profile"
-
-
 class Workout(models.Model):
     user = models.ForeignKey(User, related_name="workouts", on_delete=models.CASCADE)
     date = models.DateField(default=timezone.localdate)
@@ -74,43 +66,3 @@ class Workout(models.Model):
         if hours > 0:
             return f"{hours}h {minutes}m {seconds}s"
         return f"{minutes}m {seconds}s"
-
-class Split(models.Model):
-    workout = models.ForeignKey(Workout, related_name="splits", on_delete=models.CASCADE)
-    distance_meters = models.IntegerField(
-        null=True,
-        help_text="Distance in meters",
-        validators=[MinValueValidator(1)]
-    )
-    duration_minutes = models.IntegerField(
-        null=True,
-        validators=[MinValueValidator(1), MaxValueValidator(59)]
-        )
-
-    duration_seconds = models.IntegerField(
-        null=True,
-        help_text="Duration in seconds",
-        validators=[MinValueValidator(1), MaxValueValidator(59)]
-    )
-
-    @property
-    def duration_minutes(self):
-        return self.duration_seconds / 60
-
-    @property
-    def distance_kilometers(self):
-        return self.distance_meters / 1000
-
-    @property
-    def split_pace(self):
-        if self.distance_meters and self.distance_meters > 0:
-            pace_seconds_per_km = self.duration_seconds / self.distance_kilometers
-
-            minutes = int(pace_seconds_per_km // 60)
-            seconds = int(pace_seconds_per_km % 60)
-                
-            return f"{minutes}:{seconds:02d}"
-        return "00:00"
-
-
-    
