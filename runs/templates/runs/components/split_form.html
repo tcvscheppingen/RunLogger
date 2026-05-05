@@ -1,0 +1,27 @@
+<div class="p-6">
+    <h3 class="text-lg font-bold text-slate-800 dark:text-dracula-fg mb-4">Add a Split</h3>
+    <form method="POST" class="space-y-4">
+        {% csrf_token %}
+        <div>
+            <label class="block text-xs font-bold text-slate-500 dark:text-dracula-fg uppercase mb-1">Distance (km)</label>
+            {{ form.distance }}
+        </div>
+        <div class="mb-4">
+            <label class="block text-xs font-bold text-slate-500 dark:text-dracula-fg uppercase mb-2">Duration (MM:SS)</label>
+            <div class="grid grid-cols-2 gap-2">
+                <div class="relative">
+                    {{ form.minutes }}
+                    <span class="absolute right-2 bottom-2 text-[10px] text-slate-400 dark:text-dracula-fg">m</span>
+                </div>
+                <div class="relative">
+                    {{ form.seconds }}
+                    <span class="absolute right-2 bottom-2 text-[10px] text-slate-400 dark:text-dracula-fg">s</span>
+                </div>
+            </div>
+        </div>
+        <button type="submit"
+            class="w-full bg-blue-600 hover:bg-blue-700 dark:bg-dracula-purple dark:hover:bg-dracula-purple/80 text-white dark:text-dracula-bg py-3 rounded-lg font-bold transition shadow-lg shadow-blue-100 dark:shadow-dracula-purple/30">
+            Save Split
+        </button>
+    </form>
+</div>

@@ -45,6 +45,12 @@ class Workout(models.Model):
         )
 
     @property
+    def distance_miles(self):
+        """Return distance in miles"""
+        if self.distance and self.distance > 0:
+            return round(self.distance / 1609.344, 3)
+
+    @property
     def session_load(self):
         """Return training load for this session (duration in minutes × RPE)."""
         return (self._total_seconds() / 60) * self.rpe

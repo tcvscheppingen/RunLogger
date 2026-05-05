@@ -7,8 +7,8 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from .models import Workout, UserProfile
-from .forms import WorkoutForm
+from .models import Workout, UserProfile, Split
+from .forms import WorkoutForm, SplitForm
 from .utils import calculate_training_metrics_for_date
 
 
@@ -74,6 +74,11 @@ class WorkoutModelTests(TestCase):
         }
         defaults.update(kwargs)
         return Workout(user=self.user, **defaults)
+
+    def test_distance_to_miles(self):
+        """1000 meters should be 0.62137 miles"""
+        workout = make_workout(self.user, distance=1000, duration_minutes=6)
+        self.assertEqual(workout.distance_miles, 0.621)
 
     def test_distance_validator_rejects_zero(self):
         """Distance of zero is rejected by full_clean."""
@@ -739,3 +744,228 @@ class UserProfileViewTests(TestCase):
         })
         self.assertEqual(response.status_code, 200)
         self.assertEqual(UserProfile.objects.get(user=self.user).height, 170)
+
+
+# ---------------------------------------------------------------------------
+# Split model tests
+# ---------------------------------------------------------------------------
+
+def make_split(workout, **kwargs):
+    """Create and return a Split for the given workout with sensible defaults."""
+    defaults = {'distance': 1, 'duration_minutes': 5, 'duration_seconds': 30}
+    defaults.update(kwargs)
+    return Split.objects.create(workout=workout, **defaults)
+
+
+class SplitModelTests(TestCase):
+    """Tests for Split model properties."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='runner', password='testpass123')
+        self.workout = make_workout(self.user)
+
+    def test_distance_meters(self):
+        """1 km distance returns 1000 meters."""
+        split = make_split(self.workout, distance=3)
+        self.assertEqual(split.distance_meters, 3000)
+
+    def test_split_pace_even(self):
+        """5 min over 1 km → 5:00 /km."""
+        split = make_split(self.workout, distance=1, duration_minutes=5, duration_seconds=0)
+        self.assertEqual(split.split_pace, '5:00')
+
+    def test_split_pace_with_seconds(self):
+        """5m30s over 1 km → 5:30 /km."""
+        split = make_split(self.workout, distance=1, duration_minutes=5, duration_seconds=30)
+        self.assertEqual(split.split_pace, '5:30')
+
+    def test_split_pace_multi_km(self):
+        """11m00s over 2 km → 5:30 /km."""
+        split = make_split(self.workout, distance=2, duration_minutes=11, duration_seconds=0)
+        self.assertEqual(split.split_pace, '5:30')
+
+    def test_split_pace_zero_distance(self):
+        """Zero distance returns 0:00."""
+        split = Split(workout=self.workout, distance=0, duration_minutes=5, duration_seconds=0)
+        self.assertEqual(split.split_pace, '0:00')
+
+    def test_split_pace_no_duration(self):
+        """Zero duration returns 0:00."""
+        split = make_split(self.workout, distance=1, duration_minutes=0, duration_seconds=0)
+        self.assertEqual(split.split_pace, '0:00')
+
+    def test_split_cascade_delete(self):
+        """Deleting a workout cascades to its splits."""
+        make_split(self.workout)
+        self.assertEqual(Split.objects.count(), 1)
+        self.workout.delete()
+        self.assertEqual(Split.objects.count(), 0)
+
+
+# ---------------------------------------------------------------------------
+# Split form tests
+# ---------------------------------------------------------------------------
+
+class SplitFormTests(TestCase):
+    """Tests for SplitForm validation rules."""
+
+    def _post_data(self, **overrides):
+        data = {'distance': '1', 'minutes': '5', 'seconds': '30'}
+        data.update({k: str(v) for k, v in overrides.items()})
+        return data
+
+    def test_valid_form_is_accepted(self):
+        """A fully valid split form is accepted."""
+        self.assertTrue(SplitForm(data=self._post_data()).is_valid())
+
+    def test_negative_minutes_rejected(self):
+        """Negative minutes value is rejected."""
+        self.assertFalse(SplitForm(data=self._post_data(minutes=-1)).is_valid())
+
+    def test_seconds_above_59_rejected(self):
+        """Seconds above 59 is rejected."""
+        self.assertFalse(SplitForm(data=self._post_data(seconds=60)).is_valid())
+
+    def test_minutes_above_59_rejected(self):
+        """Minutes above 59 is rejected."""
+        self.assertFalse(SplitForm(data=self._post_data(minutes=60)).is_valid())
+
+    def test_empty_minutes_and_seconds_accepted(self):
+        """Minutes and seconds are optional."""
+        data = self._post_data()
+        del data['minutes']
+        del data['seconds']
+        self.assertTrue(SplitForm(data=data).is_valid())
+
+
+# ---------------------------------------------------------------------------
+# Workout detail / split view tests
+# ---------------------------------------------------------------------------
+
+class WorkoutDetailSplitTests(TestCase):
+    """Tests for adding splits via the workout detail view."""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='runner', password='testpass123')
+        self.other_user = User.objects.create_user(username='stranger', password='testpass123')
+        self.client.login(username='runner', password='testpass123')
+        self.workout = make_workout(self.user)
+        self.url = reverse('workout_details', args=[self.workout.pk])
+
+    def _post_split(self, **overrides):
+        data = {'distance': '1', 'minutes': '5', 'seconds': '30'}
+        data.update({k: str(v) for k, v in overrides.items()})
+        return self.client.post(self.url, data)
+
+    def test_detail_page_renders(self):
+        """GET workout detail returns 200."""
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_detail_page_contains_split_form(self):
+        """Workout detail context contains the split form."""
+        response = self.client.get(self.url)
+        self.assertIn('form', response.context)
+        self.assertIsInstance(response.context['form'], SplitForm)
+
+    def test_detail_page_contains_splits(self):
+        """Workout detail context contains the splits queryset."""
+        make_split(self.workout)
+        response = self.client.get(self.url)
+        self.assertIn('splits', response.context)
+        self.assertEqual(len(response.context['splits']), 1)
+
+    def test_post_creates_split(self):
+        """Valid POST creates a split linked to the workout."""
+        self._post_split()
+        self.assertEqual(Split.objects.filter(workout=self.workout).count(), 1)
+
+    def test_post_stores_duration_fields(self):
+        """Duration minutes and seconds are stored correctly."""
+        self._post_split(minutes='6', seconds='15')
+        split = Split.objects.get(workout=self.workout)
+        self.assertEqual(split.duration_minutes, 6)
+        self.assertEqual(split.duration_seconds, 15)
+
+    def test_post_redirects_on_success(self):
+        """Valid POST redirects back to the workout detail page."""
+        response = self._post_split()
+        self.assertRedirects(response, self.url)
+
+    def test_invalid_post_does_not_create_split(self):
+        """Invalid POST does not create a split."""
+        self._post_split(seconds='99')
+        self.assertEqual(Split.objects.filter(workout=self.workout).count(), 0)
+
+    def test_invalid_post_returns_form_with_errors(self):
+        """Invalid POST re-renders the page with form errors."""
+        response = self._post_split(seconds='99')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['form'].errors)
+
+    def test_other_user_cannot_add_split(self):
+        """A user cannot add a split to another user's workout."""
+        other_workout = make_workout(self.other_user)
+        url = reverse('workout_details', args=[other_workout.pk])
+        response = self.client.post(url, {'distance': '1', 'minutes': '5', 'seconds': '30'})
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(Split.objects.filter(workout=other_workout).count(), 0)
+
+    def test_unauthenticated_cannot_add_split(self):
+        """Unauthenticated user is redirected when posting a split."""
+        self.client.logout()
+        response = self._post_split()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Split.objects.filter(workout=self.workout).count(), 0)
+
+
+# ---------------------------------------------------------------------------
+# Delete split tests
+# ---------------------------------------------------------------------------
+
+class DeleteSplitTests(TestCase):
+    """Tests for the delete_split view."""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='runner', password='testpass123')
+        self.other_user = User.objects.create_user(username='stranger', password='testpass123')
+        self.client.login(username='runner', password='testpass123')
+        self.workout = make_workout(self.user)
+
+    def test_user_can_delete_own_split(self):
+        """A user can delete a split on their own workout."""
+        split = make_split(self.workout)
+        url = reverse('delete_split', args=[split.pk])
+        response = self.client.post(url)
+        self.assertRedirects(response, reverse('workout_details', args=[self.workout.pk]))
+        self.assertFalse(Split.objects.filter(pk=split.pk).exists())
+
+    def test_other_user_cannot_delete_split(self):
+        """A user cannot delete a split on another user's workout."""
+        other_workout = make_workout(self.other_user)
+        split = make_split(other_workout)
+        url = reverse('delete_split', args=[split.pk])
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(Split.objects.filter(pk=split.pk).exists())
+
+    def test_delete_nonexistent_split_returns_404(self):
+        """Deleting a non-existent split returns 404."""
+        response = self.client.post(reverse('delete_split', args=[99999]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_request_does_not_delete(self):
+        """GET request to delete_split does not remove the split."""
+        split = make_split(self.workout)
+        self.client.get(reverse('delete_split', args=[split.pk]))
+        self.assertTrue(Split.objects.filter(pk=split.pk).exists())
+
+    def test_unauthenticated_cannot_delete_split(self):
+        """Unauthenticated user is redirected when deleting a split."""
+        split = make_split(self.workout)
+        self.client.logout()
+        response = self.client.post(reverse('delete_split', args=[split.pk]))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Split.objects.filter(pk=split.pk).exists())

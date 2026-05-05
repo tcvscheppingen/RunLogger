@@ -6,9 +6,9 @@ from .Workout import Workout
 
 class Split(models.Model):
     workout = models.ForeignKey(Workout, related_name="splits", on_delete=models.CASCADE)
-    distance_meters = models.IntegerField(
+    distance = models.IntegerField(
         null=True,
-        help_text="Distance in meters",
+        help_text="Distance in km",
         validators=[MinValueValidator(1)]
     )
     duration_minutes = models.IntegerField(
@@ -28,16 +28,17 @@ class Split(models.Model):
         )
 
     @property
-    def distance_kilometers(self):
-        return self.distance_meters / 1000
+    def distance_meters(self):
+        return self.distance * 1000
 
     @property
     def split_pace(self):
-        if self.distance_meters and self.distance_meters > 0:
-            pace_seconds_per_km = self.duration_seconds / self.distance_kilometers
+        total = self._total_seconds()
+        if self.distance and self.distance > 0 and total > 0:
+            pace_seconds_per_km = total / self.distance
 
             minutes = int(pace_seconds_per_km // 60)
             seconds = int(pace_seconds_per_km % 60)
 
             return f"{minutes}:{seconds:02d}"
-        return "00:00"
+        return "0:00"
