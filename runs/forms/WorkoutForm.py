@@ -3,9 +3,7 @@
 from django import forms
 from django.utils import timezone
 from runs.models import Workout
-
-_INPUT_CLASSES = 'w-full rounded-md border-slate-300 shadow-sm'
-_FOCUS_CLASSES = f'{_INPUT_CLASSES} focus:border-blue-500 focus:ring-blue-500'
+from runs.forms.fields import INPUT_CLASSES, FOCUS_CLASSES, minutes_field, seconds_field
 
 
 class WorkoutForm(forms.ModelForm):
@@ -14,18 +12,10 @@ class WorkoutForm(forms.ModelForm):
     hours = forms.IntegerField(
         min_value=0, required=False,
         widget=forms.NumberInput(
-            attrs={'class': _INPUT_CLASSES, 'placeholder': '0'})
+            attrs={'class': INPUT_CLASSES, 'placeholder': '0'})
     )
-    minutes = forms.IntegerField(
-        min_value=0, max_value=59, required=False,
-        widget=forms.NumberInput(
-            attrs={'class': _INPUT_CLASSES, 'placeholder': '0'})
-    )
-    seconds = forms.IntegerField(
-        min_value=0, max_value=59, required=False,
-        widget=forms.NumberInput(
-            attrs={'type': 'number', 'class': _INPUT_CLASSES, 'placeholder': '0'})
-    )
+    minutes = minutes_field()
+    seconds = seconds_field()
 
     class Meta:
         """Meta options: model, fields and Tailwind-styled widgets."""
@@ -44,7 +34,7 @@ class WorkoutForm(forms.ModelForm):
                 'placeholder': timezone.now().date(),
             }),
             'distance': forms.NumberInput(
-                attrs={'class': _FOCUS_CLASSES, 'placeholder': '0.0'}
+                attrs={'class': FOCUS_CLASSES, 'placeholder': '0.0'}
             ),
             'notes': forms.Textarea(
                 attrs={

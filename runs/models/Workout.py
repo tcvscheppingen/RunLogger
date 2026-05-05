@@ -49,6 +49,7 @@ class Workout(models.Model):
         """Return distance in miles"""
         if self.distance and self.distance > 0:
             return round(self.distance / 1609.344, 3)
+        return "0.0"
 
     @property
     def session_load(self):
