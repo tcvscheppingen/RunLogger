@@ -1,0 +1,9 @@
+{% extends 'runs/base.html' %}
+
+{% block content %}
+<div class="flex items-center space-x-2">
+    <span class="font-bold text-slate-700 dark:text-dracula-fg">{{ workout.distance }}km</span>
+    <span class="text-slate-300 dark:text-dracula-comment">|</span>
+    <span>{{ workout.duration_display }}</span>
+</div>
+{% endblock %}

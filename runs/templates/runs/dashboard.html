@@ -97,7 +97,7 @@
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-dracula-line">
                 {% for run in workouts %}
-                <tr class="odd:bg-white even:bg-slate-50 dark:odd:bg-dracula-line dark:even:bg-[#4a4c5e] hover:bg-blue-50 dark:hover:bg-dracula-comment/20 transition">
+                <tr class="odd:bg-white even:bg-slate-50 dark:odd:bg-dracula-line dark:even:bg-[#4a4c5e] hover:bg-blue-50 dark:hover:bg-dracula-comment/20 transition cursor-pointer run-row" data-url="{% url 'workout_details' run.pk %}">
                     <td class="px-6 py-4 font-medium text-slate-900 dark:text-dracula-fg">{{ run.date|date:"M d, Y" }}
                     </td>
                     <td class="px-6 py-4">
@@ -116,7 +116,7 @@
                     <td class="px-6 py-4 font-mono font-bold text-blue-600 dark:text-dracula-cyan">
                         {{ run.rpe}}
                     </td>
-                    <td class="px-6 py-4 text-right">
+                    <td class="px-6 py-4 text-right" onclick="event.stopPropagation()">
                         <form action="{% url 'delete_run' run.pk %}" method="POST"
                             onsubmit="return confirm('Delete this run?');">
                             {% csrf_token %}
@@ -228,6 +228,13 @@
     });
 
     if (modal.dataset.hasErrors === '1') openModal();
+
+    // Clickable run rows
+    document.querySelectorAll('.run-row').forEach(function (row) {
+        row.addEventListener('click', function () {
+            window.location = row.dataset.url;
+        });
+    });
 
     // Fitness chart
     document.addEventListener('DOMContentLoaded', function () {

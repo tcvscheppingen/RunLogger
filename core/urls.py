@@ -32,6 +32,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.dashboard, name='dashboard'),
     path('delete/<int:pk>/', views.delete_run, name='delete_run'),
+    path('workout/<int:pk>/', views.workout_details, name='workout_details'),
     path('export/csv/', views.export_csv, name='export_csv'),
     path('import/csv/', views.import_csv, name='import_csv'),
     path('profile/', views.user_profile, name='user_profile'),
