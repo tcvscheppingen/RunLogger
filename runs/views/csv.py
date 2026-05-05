@@ -42,6 +42,38 @@ def export_csv(request):
     return response
 
 
+def _parse_workout_row(row, user):
+    """Parse a CSV row dict into a Workout instance, raising on invalid data."""
+    row_date = date_type.fromisoformat(row['date'].strip())
+
+    distance = float(row['distance_km'])
+    if distance < 0.01:
+        raise ValueError
+
+    hours = int(row.get('duration_hours') or 0)
+    minutes = int(row.get('duration_minutes') or 0)
+    seconds = int(row.get('duration_seconds') or 0)
+    if hours < 0 or minutes < 0 or seconds < 0:
+        raise ValueError
+
+    rpe = int(row['rpe'])
+    if rpe < 1 or rpe > 10:
+        raise ValueError
+
+    notes = row.get('notes', '') or ''
+
+    return Workout(
+        user=user,
+        date=row_date,
+        distance=distance,
+        duration_hours=hours,
+        duration_minutes=minutes,
+        duration_seconds=seconds,
+        notes=notes,
+        rpe=rpe,
+    )
+
+
 @login_required
 def import_csv(request):
     """Import workouts from an uploaded CSV file into the user's account."""
@@ -75,34 +107,8 @@ def import_csv(request):
 
     for row in reader:
         try:
-            row_date = date_type.fromisoformat(row['date'].strip())
-
-            distance = float(row['distance_km'])
-            if distance < 0.01:
-                raise ValueError
-
-            hours = int(row.get('duration_hours') or 0)
-            minutes = int(row.get('duration_minutes') or 0)
-            seconds = int(row.get('duration_seconds') or 0)
-            if hours < 0 or minutes < 0 or seconds < 0:
-                raise ValueError
-
-            rpe = int(row['rpe'])
-            if rpe < 1 or rpe > 10:
-                raise ValueError
-
-            notes = row.get('notes', '') or ''
-
-            to_create.append(Workout(
-                user=request.user,
-                date=row_date,
-                distance=distance,
-                duration_hours=hours,
-                duration_minutes=minutes,
-                duration_seconds=seconds,
-                notes=notes,
-                rpe=rpe,
-            ))
+            workout = _parse_workout_row(row, request.user)
+            to_create.append(workout)
             imported += 1
         except (KeyError, ValueError, AttributeError):
             skipped += 1
