@@ -64,9 +64,34 @@ cp .env.example .env
 
 # Run database migrations
 python manage.py migrate
+```
 
-# Start the development server
+### Setting Up Tailwind CSS
+
+This project uses [django-tailwind](https://django-tailwind.readthedocs.io/) with the `theme` app. After installing dependencies, install the Tailwind CSS binary:
+
+```bash
+python manage.py tailwind install
+```
+
+### Starting the Application
+
+Use the `tailwind dev` command to start both the Django development server and the Tailwind CSS watcher simultaneously:
+
+```bash
+python manage.py tailwind dev
+```
+
+This uses `Procfile.tailwind` under the hood to run both processes concurrently.
+
+Alternatively, run them in separate terminals:
+
+```bash
+# Terminal 1
 python manage.py runserver
+
+# Terminal 2
+python manage.py tailwind start
 ```
 
 Open http://localhost:8000 and register an account to get started.
