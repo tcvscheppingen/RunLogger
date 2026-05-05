@@ -9,6 +9,13 @@ from django.http import HttpResponse
 from runs.models import Workout
 
 
+def _sanitize_csv_value(value):
+    """Prefix formulae-triggering characters to prevent CSV injection in spreadsheets."""
+    if isinstance(value, str) and value and value[0] in ('=', '+', '-', '@', '\t', '\r'):
+        return "'" + value
+    return value
+
+
 @login_required
 def export_csv(request):
     """Return a CSV file containing all workouts for the logged-in user."""
@@ -28,7 +35,7 @@ def export_csv(request):
             workout.duration_hours or 0,
             workout.duration_minutes or 0,
             workout.duration_seconds or 0,
-            workout.notes or '',
+            _sanitize_csv_value(workout.notes or ''),
             workout.rpe,
         ])
 
@@ -44,6 +51,15 @@ def import_csv(request):
     csv_file = request.FILES.get('csv_file')
     if not csv_file:
         messages.warning(request, 'No file was uploaded.')
+        return redirect('dashboard')
+
+    max_size = 5 * 1024 * 1024  # 5 MB
+    if csv_file.size > max_size:
+        messages.warning(request, 'File too large — maximum size is 5 MB.')
+        return redirect('dashboard')
+
+    if not csv_file.name.lower().endswith('.csv'):
+        messages.warning(request, 'Only .csv files are accepted.')
         return redirect('dashboard')
 
     try:

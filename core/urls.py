@@ -18,8 +18,20 @@ from django.contrib import admin
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from django.http import HttpResponse
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
 from django_ratelimit.exceptions import Ratelimited
 from runs import views
+
+
+class RateLimitedAdminSite(admin.AdminSite):
+    @method_decorator(ratelimit(key='ip', rate='10/m', method='POST', block=True))
+    def login(self, request, extra_context=None):
+        return super().login(request, extra_context)
+
+
+# Replace the default admin site so all model registrations use the rate-limited version
+admin.site.__class__ = RateLimitedAdminSite
 
 
 def handler403(_request, exception=None):
