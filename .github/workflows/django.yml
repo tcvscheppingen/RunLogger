@@ -28,5 +28,6 @@ jobs:
     - name: Run Tests
       env:
         DJANGO_SECRET_KEY: "ci-insecure-secret-key-for-testing-only"
+        DEBUG: "True"
       run: |
         python manage.py test

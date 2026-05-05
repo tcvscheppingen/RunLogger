@@ -22,7 +22,7 @@ from django_ratelimit.exceptions import Ratelimited
 from runs import views
 
 
-def handler403(request, exception=None):
+def handler403(_request, exception=None):
     if isinstance(exception, Ratelimited):
         return HttpResponse("Too many attempts. Please wait a moment and try again.", status=429)
     return HttpResponse("Forbidden", status=403)
