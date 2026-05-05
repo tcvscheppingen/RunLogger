@@ -1,10 +1,31 @@
+[MAIN]
+# Ignore auto-generated migration files
+ignore-paths = runs/migrations
+
+[FORMAT]
+max-line-length = 120
+
 [MESSAGES CONTROL]
-disable=
+disable =
+    # Pre-existing suppressions
     import-error,
     no-member,
-    too-few-public-methods,
     too-many-locals,
-    protected-access
+    protected-access,
+    # Django models/forms/views regularly have only a few public methods
+    too-few-public-methods,
+    # Docstrings are not a Django convention for every module/class/function
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    # Django migration filenames and model-file names use non-snake-case by convention
+    invalid-name,
+    # manage.py uses a top-level import inside main(); standard Django pattern
+    import-outside-toplevel,
+    # Import ordering is handled by isort / other tools
+    wrong-import-order,
+    # Django CBV inheritance chains exceed pylint's default ancestor limit
+    too-many-ancestors,
 
 [BASIC]
-good-names=setUp,tearDown,setUpClass,tearDownClass,i,j,k,ex,Run,_,h,m,s
+good-names = setUp,tearDown,setUpClass,tearDownClass,i,j,k,ex,Run,_,h,m,s

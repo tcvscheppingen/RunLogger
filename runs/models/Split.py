@@ -26,7 +26,7 @@ class Split(models.Model):
             (self.duration_minutes or 0) * 60
             + (self.duration_seconds or 0)
         )
-        
+
     @property
     def distance_kilometers(self):
         return self.distance_meters / 1000
