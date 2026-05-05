@@ -1,9 +1,53 @@
 {% extends 'runs/base.html' %}
 
 {% block content %}
-<div class="flex items-center space-x-2">
-    <span class="font-bold text-slate-700 dark:text-dracula-fg">{{ workout.distance }}km</span>
-    <span class="text-slate-300 dark:text-dracula-comment">|</span>
-    <span>{{ workout.duration_display }}</span>
-</div>
+       <table class="w-full text-left text-sm text-slate-500 border-separate border-spacing-0">
+            <thead
+                class="bg-slate-50 dark:bg-dracula-bg uppercase text-[10px] font-bold text-slate-700 dark:text-dracula-fg sticky top-0 z-10 shadow-sm">
+                <tr>
+                    <th class="px-6 py-4 border-b border-slate-100 dark:border-dracula-line">Date</th>
+                    <th class="px-6 py-4 border-b border-slate-100 dark:border-dracula-line">Stats</th>
+                    <th class="px-6 py-4 border-b border-slate-100 dark:border-dracula-line">Pace</th>
+                    <th class="px-6 py-4 border-b border-slate-100 dark:border-dracula-line">Load</th>
+                    <th class="px-6 py-4 border-b border-slate-100 dark:border-dracula-line">RPE</th>
+                    <th class="px-6 py-4 border-b border-slate-100 dark:border-dracula-line text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-dracula-line">
+                
+                <tr class="odd:bg-white even:bg-slate-50 dark:odd:bg-dracula-line dark:even:bg-[#4a4c5e] hover:bg-blue-50 dark:hover:bg-dracula-comment/20 transition cursor-pointer workout-row" data-url="{% url 'workout_details' workout.pk %}">
+                    <td class="px-6 py-4 font-medium text-slate-900 dark:text-dracula-fg">{{ workout.date|date:"M d, Y" }}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-slate-700 dark:text-dracula-fg">{{ workout.distance }}km</span>
+                            <span class="text-slate-300 dark:text-dracula-comment">|</span>
+                            <span>{{ workout.duration_display }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 font-mono font-bold text-blue-600 dark:text-dracula-cyan">
+                        {{ workout.pace }}<span class="text-[10px] font-normal text-slate-400 dark:text-dracula-fg">/km</span>
+                    </td>
+                    <td class="px-6 py-4 font-mono font-bold text-blue-600 dark:text-dracula-cyan">
+                        {{ workout.session_load|floatformat:0 }}
+                    </td>
+                    <td class="px-6 py-4 font-mono font-bold text-blue-600 dark:text-dracula-cyan">
+                        {{ workout.rpe}}
+                    </td>
+                    <td class="px-6 py-4 text-right" onclick="event.stopPropagation()">
+                        <form action="{% url 'delete_run' workout.pk %}" method="POST"
+                            onsubmit="return confirm('Delete this workout?');">
+                            {% csrf_token %}
+                            <button type="submit" class="text-slate-300 hover:text-red-600 transition">
+                                <svg class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+      
+            </tbody>
+        </table>
 {% endblock %}
