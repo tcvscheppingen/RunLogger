@@ -1,3 +1,4 @@
+"""Views for CSV export and import of workout data."""
 import csv
 import io
 from datetime import date as date_type
@@ -10,11 +11,15 @@ from runs.models import Workout
 
 @login_required
 def export_csv(request):
+    """Return a CSV file containing all workouts for the logged-in user."""
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="runs_export.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(['date', 'distance_km', 'duration_hours', 'duration_minutes', 'duration_seconds', 'notes', 'rpe'])
+    writer.writerow([
+        'date', 'distance_km', 'duration_hours',
+        'duration_minutes', 'duration_seconds', 'notes', 'rpe',
+    ])
 
     for workout in Workout.objects.filter(user=request.user).order_by('-date'):
         writer.writerow([
@@ -32,6 +37,7 @@ def export_csv(request):
 
 @login_required
 def import_csv(request):
+    """Import workouts from an uploaded CSV file into the user's account."""
     if request.method != 'POST':
         return redirect('dashboard')
 
@@ -66,7 +72,7 @@ def import_csv(request):
                 raise ValueError
 
             rpe = int(row['rpe'])
-            if not (1 <= rpe <= 10):
+            if rpe < 1 or rpe > 10:
                 raise ValueError
 
             notes = row.get('notes', '') or ''

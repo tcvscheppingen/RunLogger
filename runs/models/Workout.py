@@ -1,3 +1,5 @@
+# pylint: disable=invalid-name
+"""Model definition for the Workout entity."""
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -5,6 +7,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Workout(models.Model):
+    """A single running workout logged by a user."""
+
     user = models.ForeignKey(User, related_name="workouts", on_delete=models.CASCADE)
     date = models.DateField(default=timezone.localdate)
     distance = models.FloatField(
@@ -33,6 +37,7 @@ class Workout(models.Model):
     )
 
     def _total_seconds(self):
+        """Return the total workout duration in seconds."""
         return (
             (self.duration_hours or 0) * 3600
             + (self.duration_minutes or 0) * 60
@@ -41,10 +46,12 @@ class Workout(models.Model):
 
     @property
     def session_load(self):
+        """Return training load for this session (duration in minutes × RPE)."""
         return (self._total_seconds() / 60) * self.rpe
 
     @property
     def pace(self):
+        """Return pace as a 'M:SS /km' string, or '0:00' if distance is zero."""
         if self.distance and self.distance > 0:
             pace_seconds_per_km = self._total_seconds() / self.distance
             minutes = int(pace_seconds_per_km // 60)
@@ -57,6 +64,7 @@ class Workout(models.Model):
 
     @property
     def duration_display(self):
+        """Return duration as a human-readable string, e.g. '1h 30m 0s'."""
         total = self._total_seconds()
         hours = total // 3600
         minutes = (total % 3600) // 60

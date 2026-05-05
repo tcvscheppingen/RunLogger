@@ -1,0 +1,10 @@
+[MESSAGES CONTROL]
+disable=
+    import-error,
+    no-member,
+    too-few-public-methods,
+    too-many-locals,
+    protected-access
+
+[BASIC]
+good-names=setUp,tearDown,setUpClass,tearDownClass,i,j,k,ex,Run,_,h,m,s

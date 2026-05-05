@@ -1,3 +1,4 @@
+"""Dashboard view: workout logging and training load display."""
 from datetime import timedelta
 from django.shortcuts import render, redirect
 from django.db.models import Sum
@@ -10,6 +11,7 @@ from runs.utils import calculate_training_metrics_for_date
 
 @login_required
 def dashboard(request):
+    """Render the main dashboard with training metrics and the log-run form."""
     if request.method == "POST":
         form = WorkoutForm(request.POST)
         if form.is_valid():
@@ -70,10 +72,22 @@ def dashboard(request):
         'chart_atl': atl_data,
         'chart_ctl': ctl_data,
         'has_baseline': has_baseline,
-        'ctl_info': "Chronic Training Load: Your 6-week rolling average of stress. This represents your long-term 'base' or aerobic engine.",
-        'atl_info': "Acute Training Load: Your 7-day rolling average of stress. This tracks your recent fatigue and how hard you've worked this week.",
-        'status_info': "Training Ratio (ATL/CTL): 0.8–1.3 is Productive; over 1.5 is the Danger Zone (high injury risk).",
-        'rpe_info': "Rate of Perceived Exertion: A 1-10 scale of how hard the run felt. 1 is a light walk, 10 is an all-out max effort.",
+        'ctl_info': (
+            "Chronic Training Load: Your 6-week rolling average of stress. "
+            "This represents your long-term 'base' or aerobic engine."
+        ),
+        'atl_info': (
+            "Acute Training Load: Your 7-day rolling average of stress. "
+            "This tracks your recent fatigue and how hard you've worked this week."
+        ),
+        'status_info': (
+            "Training Ratio (ATL/CTL): 0.8\u20131.3 is Productive; "
+            "over 1.5 is the Danger Zone (high injury risk)."
+        ),
+        'rpe_info': (
+            "Rate of Perceived Exertion: A 1-10 scale of how hard the run felt. "
+            "1 is a light walk, 10 is an all-out max effort."
+        ),
     }
 
     return render(request, 'runs/dashboard.html', context)
